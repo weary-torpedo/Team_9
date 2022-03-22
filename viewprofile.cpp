@@ -28,10 +28,10 @@ struct Course{
 	string nameCou;
 	string IDCou;
 	string teacher;
-	int credits; //t�n ch?
+	int credits;
 	int maxStu;
 	string day;
-	string session; //bu?i h?c
+	string session;
 	Student* pHeadInclasstu;
 	Course* pNext;
 };
@@ -51,6 +51,7 @@ struct Year{
 
 Year *pheadYear = NULL, *pCurYear; 
 string startDateRegister, endDateRegister;
+bool logOut;
 
 void gotoxy(int x, int y) 
 {
@@ -140,9 +141,10 @@ void staffCreate(Year *&pYear, Year *&pCurYear)
 			createCourseRegister(pCurYear, n);		
 	}
 }
+void changePassword(){	
+}
 
-void viewProfile(Student *pStu)
-{
+void viewProfile(Student *pStu){
 	int size = 13;
 	system("cls");
 	cout << "\n\n\n\n";
@@ -177,38 +179,51 @@ void viewProfile(Student *pStu)
 	getch();
 }
 
-void homePage(Student *pStu)
-{
-	while (true)
-	{
+void homePage(Student *pStu){
+	while (true){
 		system("cls");
-		printBox("Press V to view profile",xp,5,35);
+		if ('2' <= username[0] && username[0] <= '9')
+			printBox("Press V to view profile",xp,5,35);
 		printBox("Press C to change password",xp,8,35);
 		printBox("Press O to log out",xp,11,35);
 		printBox("Press Enter to do other operations",xp,14,35);
 
 		char c = getch();
-		if ( c == 'V' || c == 'v' ) 
+		if ( c == 'C' || c == 'c')
+		changePassword();		
+	else if ( c == 'V' || c == 'v' ) 
 		viewProfile(pStu);
-//	else if ( c == 'C' || c == 'c')
-//		changePassword();		
-	else if ( c == 'O' || c == 'o')
-		exit (0);
+	else if ( c == 'O' || c == 'o'){
+		logOut = true;
+		return;
+		}
 	else if ( c == 13)
-		return;	
+		return;
 	}
 }
 
-int main()
-{	
-	Student *pStu = new Student;
+int main(){	
+	Student *pStu = new Student; // get info
 	pStu->IDStu = "21127637";
 	pStu->lastname = "Phan";
 	pStu->firstname = "Linh";
 	
-	homePage(pStu);
-
-	staffCreate(pheadYear, pCurYear);
+	Year *pheadYear = new Year;
+	pheadYear->start=2021;
+	pheadYear->end = 2022;	
+	
+	do{
+		logOut = false;
+		gotoxy(20,20);
+		string username =  loginSystem();
+		homePage(pStu, username);
+		if (!logOut)
+			if (!('2' <= username[0] && username[0] <= '9'))
+				staffCreate(pheadYear, pCurYear);
+			// else student
+			
+	}
+	while (logOut);
 	
 	gotoxy(30,30);
 	return 0;
