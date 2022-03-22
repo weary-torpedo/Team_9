@@ -1,15 +1,14 @@
-#include <fstream>
 #include <iostream>
-#include <string>
 #include <cstring>
+#include <string>
+#include <fstream>
 using namespace std;
 
+struct Semester;
+struct Year;
 struct Student;
 struct Class;
-struct Semester;
 struct Course;
-struct Year;
-
 struct Semester {
     Course* pHeadCou;
     string  startDate;
@@ -51,6 +50,22 @@ struct Course {
     Course* pNext;
 };
 
+Year* CreateYear (Year* phead);
+Class * CreateClass (Class*& phead, string tmp, Year*& curyear);
+void ImportNewStu (string filename, Class *curClass);
+void ImportClasses (Class *&pheadClass, Year *&curYear);
+void OutPutStu (Class *pheadClass);
+
+int main (){
+    Year *pheadYear = new Year;
+    pheadYear -> pNext = new Year; 
+    Year *pcurYear = CreateYear (pheadYear);
+    Class *pheadClass = nullptr;
+    ImportClasses(pheadClass, pcurYear);
+    OutPutStu (pheadClass);
+    return 0; 
+}
+
 Year* CreateYear(Year* phead) {
     Year* pcur = phead;
     while (pcur->pNext != nullptr)
@@ -61,12 +76,12 @@ Year* CreateYear(Year* phead) {
     return tmp;
 }
 
-Class* CreateClass(Class*& phead, string tmp, Year*& test) {
+Class* CreateClass(Class*& phead, string tmp, Year*& curyear) {
     if (phead == nullptr) {
         phead = new Class;
         phead->className = tmp;
         phead->pNext = nullptr;
-        test->pHeadClass = phead;
+        curyear->pHeadClass = phead;
         return phead;
     }
     Class* pcur = phead;
@@ -75,41 +90,30 @@ Class* CreateClass(Class*& phead, string tmp, Year*& test) {
     pcur->pNext = new Class;
     pcur->pNext->className = tmp;
     pcur->pNext->pNext = nullptr;
-    return pcur;
+    return pcur -> pNext;
 }
 
 // Dùng để input dữ liệu của học sinh trong file lớp 
-void ImportStuOfClass (string filename,  Class *pointer){
+void ImportNewStu (string filename,  Class *curClass){
     ifstream ifile (filename.c_str());
     string tmp;
     getline (ifile, tmp, ',');
     if (tmp == "\0"){
         return;
     }
-    Student *phead = new Student;
-    phead -> No = stoi (tmp); 
-    getline (ifile, tmp, ',');
-    // stoi là hàm để tách số trong chuỗi
-    phead -> IDStu = stoi (tmp);
-    getline (ifile, tmp,',');
-    // erase để xóa space ở đầu string
-    phead -> firstname = tmp.erase(0,1);
-    getline (ifile, tmp,',');
-    phead -> lastname = tmp.erase(0,1);
-    getline (ifile, tmp,',');
-    phead -> gender = tmp.erase(0,1);
-    getline (ifile, tmp,',');
-    phead -> date = tmp.erase(0,1);
-    getline (ifile, tmp,'\n');
-    phead -> IDSocial = stoi (tmp);
-    pointer -> pHeadStu = phead;
-    Student *pcur = phead;
-    pcur -> pNext = nullptr;
+    Student *pcur;
+    curClass -> numberOfStu = 0;
     while (!ifile.eof()){
-        getline (ifile, tmp, ',');
         if (tmp != "\0"){
-            pcur -> pNext = new Student;
-            pcur = pcur -> pNext;
+            curClass -> numberOfStu += 1;
+            if (curClass -> numberOfStu != 1) {
+                pcur -> pNext = new Student;
+                pcur = pcur -> pNext;
+            }
+            else {
+                pcur = new Student;
+                curClass -> pHeadStu = pcur;
+            }
             pcur -> No = stoi (tmp); 
             getline (ifile, tmp, ',');
             pcur -> IDStu = stoi (tmp);
@@ -122,8 +126,9 @@ void ImportStuOfClass (string filename,  Class *pointer){
             getline (ifile, tmp,',');
             pcur -> date = tmp.erase(0,1);
             getline (ifile, tmp,'\n');
-            pcur -> IDSocial = stoi (tmp);
+            pcur -> IDSocial = stoi (tmp.c_str());
             pcur -> pNext = nullptr;
+            getline (ifile,tmp, ',');
         }
         else break;
     }
@@ -132,18 +137,23 @@ void ImportStuOfClass (string filename,  Class *pointer){
     // hàm được comment là hàm dùng để loại enter khỏi chuôi
 }
 
+//void ImportOldStu (Class *&
+// hàm dùng để nhập dữ liệu các sinh viên năm 2 trở đi
+/*void ImportOldData (Class *&pheadClass, Year *&curYear){
+    while (
+}*/
 // Sau khi year được tạo thì class được tạo thông qua hàm này
 // Hàm này giúp cập nhật tên cho lớp, nhập dữ liệu cho lớp hoc
 void ImportClasses (Class *&pheadClass, Year *&curYear){
     int n;
     cout << "How many files are you going to import? ";
     cin >> n;
+    cin.ignore(numeric_limits<streamsize>::max(),'\n');
     string filename, classname, compare;
     bool outloop = false;
     for (int i = 0; i < n; i++){
         while (outloop == false){
             cout << "Enter class name: ";
-            cin.ignore (100, '\n');
             getline (cin, classname, '\n');
             cout << "Enter file name to input class: ";
             getline (cin, filename, '\n');
@@ -160,7 +170,7 @@ void ImportClasses (Class *&pheadClass, Year *&curYear){
             }  
         }
         Class *curClass = CreateClass (pheadClass, classname, curYear);
-        ImportStuOfClass(filename, curClass);
+        ImportNewStu(filename, curClass);
     } 
 }
 
@@ -170,6 +180,7 @@ void OutPutStu (Class *pheadClass){
     while (pcurClass != nullptr){
         Student *pcurStu = pcurClass -> pHeadStu;
         cout << "Class: " << pcurClass -> className << endl;
+        cout << "Number of student: " << pcurClass -> numberOfStu << endl;
         while (pcurStu != nullptr){
             cout << "No: " << pcurStu -> No << endl;
             cout << "ID: " << pcurStu -> IDStu << endl;
@@ -186,12 +197,4 @@ void OutPutStu (Class *pheadClass){
     }
 }
 
-int main(){  
-    Year *pheadYear = new Year;
-    pheadYear -> pNext = new Year; 
-    Year *pcurYear = CreateYear (pheadYear);
-    Class *pheadClass = nullptr;
-    ImportClasses(pheadClass, pcurYear);
-    OutPutStu (pheadClass);
-    return 0; 
-}
+
