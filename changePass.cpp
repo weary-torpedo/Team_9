@@ -6,7 +6,7 @@
 #include <fstream>
 using namespace std;
 
-//test thu
+
 
 struct NodePass{
     string user,pass;
