@@ -54,6 +54,7 @@ struct Course {
 Year* CreateYear (Year* phead);
 Class * CreateClass (Class*& phead, string tmp, Year*& curyear);
 void ImportNewStu (string filename, Class *curClass);
+void ImportOldStu(string filename, Class*& cHead);
 void ImportClasses (Class *&pheadClass, Year *&curYear);
 void OutPutStu (Class *pheadClass);
 bool CheckScheduleCou (Student *curStu, Course *curEnroll, Course *pHead);
@@ -140,8 +141,55 @@ void ImportNewStu (string filename,  Class *curClass){
     // hàm được comment là hàm dùng để loại enter khỏi chuôi
 }
 
-//void ImportOldStu (Class *&
-// hàm dùng để nhập dữ liệu các sinh viên năm 2 trở đi
+void ImportOldStu(string filename, Class*& cHead) {
+    ifstream ifile(filename.c_str());
+    string tmp;
+    Class *curClass = new Class;
+    getline(ifile, tmp, ',');
+    if (tmp == "\0") {
+        return;
+    }
+    while (!ifile.eof()) {
+            if (tmp != "\0") {
+                int j = 0;
+                if (j != 0) {
+                    curClass->pNext = new Class;
+                    curClass = curClass->pNext;
+                }
+                else curClass = cHead;
+                curClass->className = tmp;
+                getline(ifile, tmp, '\n');
+                curClass->numberOfStu = stoi(tmp.c_str());
+                for (int i = curClass->numberOfStu; i > 0; i--) {
+                    Student* pcur = new Student;
+                    if (i != curClass->numberOfStu) {
+                        pcur->pNext = new Student;
+                        pcur = pcur->pNext;
+                    }
+                    else curClass->pHeadStu = pcur;
+                    pcur->No = stoi(tmp);
+                    getline(ifile, tmp, ',');
+                    pcur->IDStu = stoi(tmp);
+                    getline(ifile, tmp, ',');
+                    pcur->firstname = tmp.erase(0, 1);
+                    getline(ifile, tmp, ',');
+                    pcur->lastname = tmp.erase(0, 1);
+                    getline(ifile, tmp, ',');
+                    pcur->gender = tmp.erase(0, 1);
+                    getline(ifile, tmp, ',');
+                    pcur->date = tmp.erase(0, 1);
+                    getline(ifile, tmp, '\n');
+                    pcur->IDSocial = stoi(tmp.c_str());
+                    pcur->pNext = nullptr;
+                    getline(ifile, tmp, ',');
+                }
+                j++;
+            }
+            else break;
+        }
+    ifile.close();
+}
+
 /*void ImportOldData (Class *&pheadClass, Year *&curYear){
     while (
 }*/
