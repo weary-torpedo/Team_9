@@ -166,7 +166,7 @@ void createCourseCSV(Year *&pCurYear, int orderSem){
 	Course *pHeadCou = NULL, *pCurCou = pHeadCou;
 	string tmp;
 	fstream FILE;
-	FILE.open("Course.csv",ios::in);
+	FILE.open("ImportCourse.csv",ios::in);
 	
 	while (!(FILE.eof())){
 		Course *pNew = new Course;
@@ -281,10 +281,63 @@ void createCourse(Year *&pCurYear, int orderSem){
 	getch();	
 }
 
-void listCourse(Year *&pCurYear,int n){
+void listCourse(Year *&pCurYear, int orderSem, int &soluong){
+	system("cls");
+	gotoxy(xp,5);
+	cout << "Course ID";
+	gotoxy(xp,7);
+	cout << "Name course ";
+	gotoxy(xp,9);
+	cout << "Credit ";
+	gotoxy(xp,11);
+	cout << "Sessions ";
+	gotoxy(xp,13);
+	cout << "Teacher ";
+	gotoxy(xp,15);
+	cout << "Student ";
+	
+	Course *pHeadCou;
+	switch (orderSem){
+		case 1:{
+			pHeadCou = pCurYear->Sem1.pHeadCou;
+			break;
+		}
+		case 2:{
+			pHeadCou = pCurYear->Sem2.pHeadCou;
+			break;
+		}
+		case 3:{
+			pHeadCou = pCurYear->Sem3.pHeadCou;
+		}
+	}
+		
+	Course *pCurCou = pHeadCou;
+	int i = 15;
+	while (pCurCou != NULL){
+		for (int j = 5; j <= 15; j+= 2){
+			gotoxy(xp + i - 2, j);
+			cout << "|";
+		}
+		soluong ++;
+		gotoxy(xp + i,5);
+		cout << pCurCou->IDCou;
+		gotoxy(xp + i,7);
+		cout << pCurCou->nameCou;
+		gotoxy(xp + i,9);
+		cout << pCurCou->credits;
+		gotoxy(xp + i,11);
+		cout << pCurCou->day1 << " " << pCurCou->session1 << ", " << pCurCou->day2 << " " << pCurCou->session2 ;
+		gotoxy(xp + i,13);
+		cout << pCurCou->teacher;
+		gotoxy(xp + i,15);
+		cout << pCurCou->maxStu ;	
+		pCurCou = pCurCou->pNext;
+		i += 22;
+	}
 }
 
-void createCourseRegister(Year *&pCurYear, int n){
+
+void createCourseRegister(Year *&pCurYear, int orderSem){
 	system("cls");
 	cout << "\n\n\n\n\n\n";
 	cout << "        " << "When does the course registration start? (DD/MM/YYYY) ";
@@ -307,9 +360,11 @@ void createCourseRegister(Year *&pCurYear, int n){
 	
 		char c = getch();
 		if ( c == 'A' || c == 'a')
-			createCourse(pCurYear,n);
-	else if ( c == 'C' || c == 'c')
-			listCourse(pCurYear,n);
+			createCourseCSV(pCurYear,orderSem);
+	else if ( c == 'C' || c == 'c'){
+			int soluong = -1;
+			listCourse(pCurYear,orderSem,soluong);
+	}
 	 if ( c == 'O' || c == 'o')
 			exit(0);
 	}
