@@ -161,6 +161,69 @@ void printBox(string text, int x, int y, int size)
 	cout << char (217);		
 }
 
+void createCourseCSV(Year *&pCurYear, int orderSem){
+	system("cls");
+	Course *pHeadCou = NULL, *pCurCou = pHeadCou;
+	string tmp;
+	fstream FILE;
+	FILE.open("Course.csv",ios::in);
+	
+	while (!(FILE.eof())){
+		Course *pNew = new Course;
+		getline(FILE,pNew->IDCou,',');
+		if (pNew->IDCou[0] == '\n')
+			pNew->IDCou.erase(pNew->IDCou.begin());
+		getline(FILE,pNew->nameCou,',');
+		getline(FILE,tmp,',');
+		pNew->credits = stoi(tmp); 
+		tmp = "";
+		getline(FILE,pNew->day1,',');
+		getline(FILE,pNew->session1,',');
+		getline(FILE,pNew->day2,',');
+		getline(FILE,pNew->session2,',');
+		getline(FILE,pNew->teacher,',');
+		getline(FILE,tmp,',');
+		pNew->maxStu = stoi(tmp); 
+		tmp = "";
+		if (pHeadCou == NULL)
+			pHeadCou = pNew;
+		if (pCurCou != NULL)
+			pCurCou->pNext = pNew;
+		pCurCou = pNew;
+	}
+		pCurCou->pNext = NULL;
+		
+	switch (orderSem){
+		case 1:{
+			pCurYear->Sem1.pHeadCou = pHeadCou;
+			break;
+		}
+		case 2:{
+			pCurYear->Sem2.pHeadCou = pHeadCou;
+			break;
+		}
+		case 3:{
+			pCurYear->Sem3.pHeadCou = pHeadCou;
+		}
+	}
+	
+	pCurCou = pCurYear->Sem1.pHeadCou;
+	while (pCurCou != NULL){
+		cout << endl << pCurCou->IDCou << endl;
+		cout << pCurCou->nameCou << endl;
+		cout << pCurCou->credits << endl;
+		cout << pCurCou->day1 << endl;
+		cout << pCurCou->session1 << endl;
+		cout << pCurCou->day2 << endl;
+		cout << pCurCou->session2 << endl;
+		cout << pCurCou->teacher << endl;
+		cout << pCurCou->maxStu << endl;
+		pCurCou = pCurCou->pNext;
+	}	
+
+	FILE.close();
+	getch();
+}
 void createCourse(Year *&pCurYear, int orderSem){
 	Course *pHeadCou;
 	switch (orderSem){
@@ -253,6 +316,31 @@ void createCourseRegister(Year *&pCurYear, int n){
 }
 
 void createSemester(Year *&pCurYear, int &orderSem){
+	system("cls");
+	cout << "\n\n\n\n\n\n";
+	cout << "        " << "Which sem do you want to create? ";
+	cout << "\n        " << "1 for Sem 1";
+	cout << "\n        " << "2 for Sem 2";
+	cout << "\n        " << "3 for Sem 3";
+	cout << "\n\n        ";
+	cin >> orderSem;
+	
+	switch (orderSem){
+		case 1:{
+			pCurYear->Sem1.pHeadCou = NULL;
+			break;
+		};
+		case 2:{
+			pCurYear->Sem2.pHeadCou = NULL;
+			break;
+		}
+		case 3:
+			pCurYear->Sem3.pHeadCou = NULL;
+	}
+
+	cout << "\n        " << "You created successfully!";
+	cout << "\n        " << "PRESS ENTER TO GO BACK...";
+	getch();	
 }
 
 void createClass(Year *&pCurYear){
