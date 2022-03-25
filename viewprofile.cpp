@@ -30,8 +30,8 @@ struct Course{
 	string teacher;
 	int credits;
 	int maxStu;
-	string day;
-	string session;
+	string day1, day2;
+	string session1, session2;
 	Student* pHeadInclasstu;
 	Course* pNext;
 };
@@ -161,8 +161,67 @@ void printBox(string text, int x, int y, int size)
 	cout << char (217);		
 }
 
-void createCourseRegister(Year *&pCurYear, int n)
-{
+void createCourse(Year *&pCurYear, int orderSem){
+	Course *pHeadCou;
+	switch (orderSem){
+		case 1:{
+			pHeadCou = pCurYear->Sem1.pHeadCou;
+			break;
+		}
+		case 2:{
+			pHeadCou = pCurYear->Sem2.pHeadCou;
+			break;
+		}
+		case 3:{
+			pHeadCou = pCurYear->Sem3.pHeadCou;
+		}
+	}
+	Course *pCurCou = pHeadCou;
+	while (pHeadCou != NULL && pCurCou->pNext != NULL)
+		pCurCou = pCurCou->pNext;
+	
+	Course *pNew = new Course;
+	pNew->pHeadInclasstu= NULL;
+	
+	system ("cls");
+	cout << "\n\n\n\n\n\n";
+	cout << "        " << "Course ID:  ";
+	cin.ignore();
+	getline(cin,pNew->IDCou,'\n');
+	cout << "\n\n        " << "Name course:  ";
+	getline(cin,pNew->nameCou,'\n');	 
+	cout << "\n\n        " << "Credit:  "; 
+	cin >> pNew->credits;
+	cout << "\n\n        " << "Day1:  "; 
+	cin.ignore();
+	getline(cin,pNew->day1,'\n');
+	cout << "\n\n        " << "Session1:  "; 
+	getline(cin,pNew->session1,'\n');
+	cout << "\n\n        " << "Day2:  "; 
+	getline(cin,pNew->day2,'\n');
+	cout << "\n\n        " << "Session2:  "; 
+	getline(cin,pNew->session2,'\n');
+	cout << "\n\n        " << "Teacher:  "; 
+	getline(cin,pNew->teacher,'\n');
+	cout << "\n\n        " << "The max number of student:  "; 
+	cin >> pNew->maxStu;
+	cout << "\n\n        " << "You created successfully!";
+	cout << "\n        " << "PRESS ENTER TO GO BACK...";
+	
+	if ( pHeadCou == NULL)
+		pHeadCou = pNew;
+	else
+		pCurCou->pNext = pNew;
+	pCurCou = pNew;
+	pCurCou->pNext = NULL;
+			
+	getch();	
+}
+
+void listCourse(Year *&pCurYear,int n){
+}
+
+void createCourseRegister(Year *&pCurYear, int n){
 	system("cls");
 	cout << "\n\n\n\n\n\n";
 	cout << "        " << "When does the course registration start? (DD/MM/YYYY) ";
@@ -175,22 +234,22 @@ void createCourseRegister(Year *&pCurYear, int n)
 	
 	int size = 35;
 	
-//	while (true)
-//	{
-//		system("cls");
-//		
-//		printBox("Press A to create a course",xp,5,size);
-//		printBox("Press C to see list of courses",xp,8,size);
-//		printBox("Press O to log out",xp,11,size);	
-//	
-//		char c = getch();
-//		if ( c == 'A' || c == 'a')
-//			createCourse(pCurYear,n);
-//	else if ( c == 'C' || c == 'c')
-//			listCourse(pCurYear,n);
-//	 if ( c == 'O' || c == 'o')
-//			exit(0);
-//	}
+	while (true)
+	{
+		system("cls");
+		
+		printBox("Press A to create a course",xp,5,size);
+		printBox("Press C to see list of courses",xp,8,size);
+		printBox("Press O to log out",xp,11,size);	
+	
+		char c = getch();
+		if ( c == 'A' || c == 'a')
+			createCourse(pCurYear,n);
+	else if ( c == 'C' || c == 'c')
+			listCourse(pCurYear,n);
+	 if ( c == 'O' || c == 'o')
+			exit(0);
+	}
 }
 
 void createSemester(Year *&pCurYear, int &orderSem){
@@ -315,6 +374,4 @@ int main(){
 	
 	gotoxy(30,30);
 	return 0;
-}
-
 }
