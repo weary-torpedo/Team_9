@@ -206,20 +206,6 @@ void createCourseCSV(Year *&pCurYear, int orderSem){
 			pCurYear->Sem3.pHeadCou = pHeadCou;
 		}
 	}
-	
-	pCurCou = pCurYear->Sem1.pHeadCou;
-	while (pCurCou != NULL){
-		cout << endl << pCurCou->IDCou << endl;
-		cout << pCurCou->nameCou << endl;
-		cout << pCurCou->credits << endl;
-		cout << pCurCou->day1 << endl;
-		cout << pCurCou->session1 << endl;
-		cout << pCurCou->day2 << endl;
-		cout << pCurCou->session2 << endl;
-		cout << pCurCou->teacher << endl;
-		cout << pCurCou->maxStu << endl;
-		pCurCou = pCurCou->pNext;
-	}	
 
 	FILE.close();
 	getch();
@@ -279,6 +265,12 @@ void createCourse(Year *&pCurYear, int orderSem){
 	pCurCou->pNext = NULL;
 			
 	getch();	
+}
+
+void editCourse(Year *&pCurYear, int orderSem, int orderCou){
+}
+
+void deleteCourse(Year *&pCurYear, int orderSem, int orderCou){
 }
 
 void listCourse(Year *&pCurYear, int orderSem, int &soluong){
@@ -350,8 +342,7 @@ void createCourseRegister(Year *&pCurYear, int orderSem){
 	
 	int size = 35;
 	
-	while (true)
-	{
+	while (true){
 		system("cls");
 		
 		printBox("Press A to create a course",xp,5,size);
@@ -361,12 +352,47 @@ void createCourseRegister(Year *&pCurYear, int orderSem){
 		char c = getch();
 		if ( c == 'A' || c == 'a')
 			createCourseCSV(pCurYear,orderSem);
-	else if ( c == 'C' || c == 'c'){
-			int soluong = -1;
-			listCourse(pCurYear,orderSem,soluong);
+		else if ( c == 'C' || c == 'c'){
+			char c1 = '1', c2 = '1';
+			while ( c1 != 'B' && c1 != 'b' && c2 != 'B' && c2 != 'b'){
+				int soluong = -1;
+				listCourse(pCurYear,orderSem,soluong);
+				gotoxy(1,1);
+				cout << soluong;
+				gotoxy(xp,soluong + 17);
+				cout << "Move arrow keys and enter to choose a course, then ...";
+				printBox("Press E to edit the course",xp,21,size);
+				printBox("Press D to delete the course",xp,24,size);
+				printBox("Press B to back",xp,27,size);	
+				
+				c2 = '1'; 
+				int orderCou = 0;
+				gotoxy(32,16);
+				while (c2 != 13 && c2 != 'B' && c2 != 'b'){
+					c2 = getch();
+					if (c2 == 75 && orderCou > 0){ // trai
+						orderCou --;
+						gotoxy (32 + orderCou * 22,16);
+					}
+					else if (c2 == 77 && orderCou < soluong ){ // phai
+						orderCou ++;
+						gotoxy (32 + orderCou * 22,16);	
+					}	
+				}
+				if (c2 == 'B' || c2 == 'b')
+					break;
+				if (c2 == 13)
+					c1 = getch();
+				if ( c1 == 'E' || c1 == 'e')
+					editCourse(pCurYear,orderSem,orderCou);
+				else if (c1 == 'D' || c1 == 'd')
+					deleteCourse(pCurYear,orderSem,orderCou);
+			}
 	}
-	 if ( c == 'O' || c == 'o')
-			exit(0);
+	else if ( c == 'O' || c == 'o'){
+		logOut = true;
+		return;
+		}
 	}
 }
 
