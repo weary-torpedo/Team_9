@@ -447,6 +447,46 @@ void deleteCourse(Year *&pCurYear, int orderSem, int orderCou){
 	getch();
 }
 
+void exportCourse(Year *pCurYear, int orderSem){
+	fstream FILE;
+	FILE.open("ExportCourse.csv",ios::out);
+
+	Course *pHeadCou;
+	switch (orderSem){
+		case 1:{
+			pHeadCou = pCurYear->Sem1.pHeadCou;
+			FILE << "Sem1\n";
+			break;
+		}
+		case 2:{
+			pHeadCou = pCurYear->Sem2.pHeadCou;
+			FILE << "Sem2\n";
+			break;
+		}
+		case 3:{
+			pHeadCou = pCurYear->Sem3.pHeadCou;
+			FILE << "Sem3\n";
+		}
+	}
+		
+	Course *pCurCou = pHeadCou;
+	while (pCurCou != NULL){
+		FILE << pCurCou->IDCou << ",";
+		FILE << pCurCou->nameCou << ",";
+		FILE << pCurCou->credits << ",";
+		FILE << pCurCou->day1 << ",";
+		FILE << pCurCou->session1 << ",";
+		FILE << pCurCou->day2 << ",";
+		FILE << pCurCou->session2 << ",";
+		FILE << pCurCou->teacher << ",";
+		FILE << pCurCou->maxStu  << ",";
+		FILE << pCurCou->enrolling << "\n";
+		pCurCou = pCurCou->pNext;
+	}		
+
+	FILE.close();
+}
+
 void listCourse(Year *&pCurYear, int orderSem, int &soluong){
 	system("cls");
 	gotoxy(xp,5);
@@ -498,19 +538,28 @@ void listCourse(Year *&pCurYear, int orderSem, int &soluong){
 	}
 }
 
-void createCourseRegister(Year *&pCurYear, int orderSem){
+void createCourseRegister(Year *&pCurYear, int &orderSem){
 	system("cls");
-	cout << "\n\n\n\n\n\n";
-	cout << "        " << "When does the course registration start? (DD/MM/YYYY) ";
-	cin >> startDateRegister;
-	cout << "\n\n        " << "When does the course registration end? (DD/MM/YYYY)   ";
-	cin >> endDateRegister;
-	cout << "\n\n        " << "You created successfully!";
-	cout << "\n        " << "PRESS ENTER TO GO BACK...";
-	getch();
+	if (orderSem == 1 && orderSem == 2 && orderSem == 3){
+		cout << "\n\n\n\n\n\n";
+		cout << "        " << "When does the course registration start? (DD/MM/YYYY) ";
+		cin >> startDateRegister;
+		cout << "\n\n        " << "When does the course registration end? (DD/MM/YYYY)   ";
+		cin >> endDateRegister;
+		cout << "\n\n        " << "You created successfully!";
+		cout << "\n        " << "PRESS ENTER TO GO BACK...";
+		getch();		
+	}
+	else{
+		string tmp;
+		fstream FILE;
+		FILE.open("ExportCourse.csv", ios::in);
+		getline(FILE,tmp,'\n');
+		orderSem = (int)tmp[3] - 48;
+		FILE.close();	
+	}
 	
 	int size = 35;
-	
 	while (true){
 		system("cls");
 		
@@ -520,7 +569,7 @@ void createCourseRegister(Year *&pCurYear, int orderSem){
 	
 		char c = getch();
 		if ( c == 'A' || c == 'a'){
-			int tmp;
+			int TMP;
 			system("cls");
 			gotoxy(xp,5);
 			cout << "Please press 1 or 2 to import course(s) ";
@@ -528,12 +577,14 @@ void createCourseRegister(Year *&pCurYear, int orderSem){
 			cout << "1. Import one by one. ";
 			gotoxy(xp,7);
 			cout << "2. Import CSV file. ";
-			cin >> tmp;
-			if ( tmp == 1)
+			gotoxy(xp,8);
+			cin >> TMP;
+			if ( TMP == 1)
 				createCourse(pCurYear, orderSem);
 			else
 				createCourseCSV(pCurYear,orderSem);
 		}
+			
 		else if ( c == 'C' || c == 'c'){
 			char c1 = '1', c2 = '1';
 			while ( c1 != 'B' && c1 != 'b' && c2 != 'B' && c2 != 'b'){
@@ -570,6 +621,7 @@ void createCourseRegister(Year *&pCurYear, int orderSem){
 			}
 	}
 	else if ( c == 'O' || c == 'o'){
+		exportCourse(pCurYear, orderSem);
 		logOut = true;
 		return;
 		}
