@@ -206,6 +206,20 @@ void createCourseCSV(Year *&pCurYear, int orderSem){
 			pCurYear->Sem3.pHeadCou = pHeadCou;
 		}
 	}
+	
+	pCurCou = pCurYear->Sem1.pHeadCou;
+	while (pCurCou != NULL){
+		cout << endl << pCurCou->IDCou << endl;
+		cout << pCurCou->nameCou << endl;
+		cout << pCurCou->credits << endl;
+		cout << pCurCou->day1 << endl;
+		cout << pCurCou->session1 << endl;
+		cout << pCurCou->day2 << endl;
+		cout << pCurCou->session2 << endl;
+		cout << pCurCou->teacher << endl;
+		cout << pCurCou->maxStu << endl;
+		pCurCou = pCurCou->pNext;
+	}	
 
 	FILE.close();
 	getch();
@@ -268,6 +282,64 @@ void createCourse(Year *&pCurYear, int orderSem){
 }
 
 void editCourse(Year *&pCurYear, int orderSem, int orderCou){
+	system("cls");
+	
+	Course *pCurCou;
+	switch (orderSem){
+		case 1:{
+			pCurCou = pCurYear->Sem1.pHeadCou;
+			break;
+		}
+		case 2:{
+			pCurCou = pCurYear->Sem2.pHeadCou;
+			break;
+		}
+		case 3:{
+			pCurCou = pCurYear->Sem3.pHeadCou;
+		}
+	}
+	
+	int t = 0;
+	while (pCurCou != NULL && orderCou != t){
+		pCurCou = pCurCou->pNext;
+		t++;		
+	}
+	
+	gotoxy(xp,2);
+	cout << "Move arrow keys and enter to choose the element you want to edit";
+	gotoxy(xp,5);
+	cout << "Course ID: " << pCurCou->IDCou << endl;
+	gotoxy(xp,6);
+	cout << "Name course: " << pCurCou->nameCou << endl;
+	gotoxy(xp,7);
+	cout << "Credit: " << pCurCou->credits << endl;
+	gotoxy(xp,8);
+	cout << "Day 1: " << pCurCou->day1 << endl;
+	gotoxy(xp,9);
+	cout << "Session 1: " << pCurCou->session1 << endl;
+	gotoxy(xp,10);
+	cout << "Day 2: " << pCurCou->day2 << endl;
+	gotoxy(xp,11);
+	cout << "Session 2: " << pCurCou->session2 << endl;
+	gotoxy(xp,12);
+	cout << "Teacher: " << pCurCou->teacher << endl;
+	gotoxy(xp,13);
+	cout << "The max number of student: " << pCurCou->maxStu;	
+	
+	char c = '1'; 
+	int orderInfo = 0;
+	gotoxy(50,5);
+	while (c != 13 ){
+		c = getch();
+		if (c == 72 && orderInfo > 0){ // len
+			orderInfo --;
+			gotoxy (50,5 + orderInfo);
+		}
+		else if (c == 80 && orderInfo < 8 ){ // xuong
+			orderInfo ++;
+			gotoxy (50,5 + orderInfo);	
+		}	
+	}
 }
 
 void deleteCourse(Year *&pCurYear, int orderSem, int orderCou){
