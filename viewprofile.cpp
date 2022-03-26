@@ -29,7 +29,7 @@ struct Course{
 	string IDCou;
 	string teacher;
 	int credits;
-	int maxStu;
+	int maxStu, enrolling;
 	string day1, day2;
 	string session1, session2;
 	Student* pHeadInclasstu;
@@ -139,8 +139,7 @@ string loginSystem(){
 	return username;
 }
 
-void printBox(string text, int x, int y, int size)
-{	
+void printBox(string text, int x, int y, int size){	
 	gotoxy(x,y);
 	cout << char (218);
 	for ( int j = 1; j <= size; j++)
@@ -163,16 +162,35 @@ void printBox(string text, int x, int y, int size)
 
 void createCourseCSV(Year *&pCurYear, int orderSem){
 	system("cls");
-	Course *pHeadCou = NULL, *pCurCou = pHeadCou;
+	Course *pHeadCou;
 	string tmp;
 	fstream FILE;
 	FILE.open("ImportCourse.csv",ios::in);
+
+	switch (orderSem){
+		case 1:{
+			pHeadCou = pCurYear->Sem1.pHeadCou;
+			break;
+		}
+		case 2:{
+			pHeadCou = pCurYear->Sem2.pHeadCou;
+			break;
+		}
+		case 3:{
+			pHeadCou = pCurYear->Sem3.pHeadCou;
+		}
+	}
+
+	Course *pCurCou = pHeadCou;
+	while (pHeadCou != NULL && pCurCou->pNext != NULL)
+		pCurCou = pCurCou->pNext;
 	
 	while (!(FILE.eof())){
 		Course *pNew = new Course;
-		getline(FILE,pNew->IDCou,',');
-		if (pNew->IDCou[0] == '\n')
-			pNew->IDCou.erase(pNew->IDCou.begin());
+		getline(FILE, tmp,',');
+        if (tmp == "\0")
+            break;
+        pNew -> IDCou = tmp;
 		getline(FILE,pNew->nameCou,',');
 		getline(FILE,tmp,',');
 		pNew->credits = stoi(tmp); 
@@ -182,8 +200,10 @@ void createCourseCSV(Year *&pCurYear, int orderSem){
 		getline(FILE,pNew->day2,',');
 		getline(FILE,pNew->session2,',');
 		getline(FILE,pNew->teacher,',');
-		getline(FILE,tmp,',');
-		pNew->maxStu = stoi(tmp); 
+		getline(FILE,tmp, '\n');
+        pNew -> maxStu = stoi (tmp);
+        pNew -> enrolling = 0;
+        pNew -> pHeadInclasstu = NULL;
 		tmp = "";
 		if (pHeadCou == NULL)
 			pHeadCou = pNew;
@@ -192,7 +212,7 @@ void createCourseCSV(Year *&pCurYear, int orderSem){
 		pCurCou = pNew;
 	}
 		pCurCou->pNext = NULL;
-		
+
 	switch (orderSem){
 		case 1:{
 			pCurYear->Sem1.pHeadCou = pHeadCou;
@@ -206,24 +226,11 @@ void createCourseCSV(Year *&pCurYear, int orderSem){
 			pCurYear->Sem3.pHeadCou = pHeadCou;
 		}
 	}
-	
-	pCurCou = pCurYear->Sem1.pHeadCou;
-	while (pCurCou != NULL){
-		cout << endl << pCurCou->IDCou << endl;
-		cout << pCurCou->nameCou << endl;
-		cout << pCurCou->credits << endl;
-		cout << pCurCou->day1 << endl;
-		cout << pCurCou->session1 << endl;
-		cout << pCurCou->day2 << endl;
-		cout << pCurCou->session2 << endl;
-		cout << pCurCou->teacher << endl;
-		cout << pCurCou->maxStu << endl;
-		pCurCou = pCurCou->pNext;
-	}	
 
 	FILE.close();
 	getch();
 }
+
 void createCourse(Year *&pCurYear, int orderSem){
 	Course *pHeadCou;
 	switch (orderSem){
@@ -388,7 +395,6 @@ void editCourse(Year *&pCurYear, int orderSem, int orderCou){
 	cout << "Edit successfully";
 	getch();	
 }
-}
 
 void deleteCourse(Year *&pCurYear, int orderSem, int orderCou){
 	system("cls");
@@ -420,10 +426,9 @@ void deleteCourse(Year *&pCurYear, int orderSem, int orderCou){
 			pCurYear->Sem2.pHeadCou = pHeadCou;
 			break;
 		}
-		case 3:{
+		case 3:
 			pCurYear->Sem3.pHeadCou = pHeadCou;
-		}
-	}	
+		}	
 	}
 	else{
 		Course *pCurCou = pHeadCou;
@@ -445,17 +450,17 @@ void deleteCourse(Year *&pCurYear, int orderSem, int orderCou){
 void listCourse(Year *&pCurYear, int orderSem, int &soluong){
 	system("cls");
 	gotoxy(xp,5);
-	cout << "Course ID";
-	gotoxy(xp,7);
-	cout << "Name course ";
-	gotoxy(xp,9);
-	cout << "Credit ";
-	gotoxy(xp,11);
-	cout << "Sessions ";
-	gotoxy(xp,13);
-	cout << "Teacher ";
-	gotoxy(xp,15);
-	cout << "Student ";
+	cout << "COURSE ID";
+	gotoxy(xp + 12,5);
+	cout << "NAME COURSE ";
+	gotoxy(xp + 35,5);
+	cout << "CREDIT ";
+	gotoxy(xp + 44 ,5);
+	cout << "SESSIONS ";
+	gotoxy(xp + 68,5);
+	cout << "TEACHER ";
+	gotoxy(xp + 90,5);
+	cout << "STUDENT ";
 	
 	Course *pHeadCou;
 	switch (orderSem){
@@ -473,30 +478,25 @@ void listCourse(Year *&pCurYear, int orderSem, int &soluong){
 	}
 		
 	Course *pCurCou = pHeadCou;
-	int i = 15;
+	int i = 0;
 	while (pCurCou != NULL){
-		for (int j = 5; j <= 15; j+= 2){
-			gotoxy(xp + i - 2, j);
-			cout << "|";
-		}
 		soluong ++;
-		gotoxy(xp + i,5);
+		gotoxy(xp,6 + i);
 		cout << pCurCou->IDCou;
-		gotoxy(xp + i,7);
+		gotoxy(xp + 12,6 + i);
 		cout << pCurCou->nameCou;
-		gotoxy(xp + i,9);
+		gotoxy(xp + 35,6 + i);
 		cout << pCurCou->credits;
-		gotoxy(xp + i,11);
+		gotoxy(xp + 44,6 + i);
 		cout << pCurCou->day1 << " " << pCurCou->session1 << ", " << pCurCou->day2 << " " << pCurCou->session2 ;
-		gotoxy(xp + i,13);
+		gotoxy(xp + 68,6 + i);
 		cout << pCurCou->teacher;
-		gotoxy(xp + i,15);
-		cout << pCurCou->maxStu ;	
+		gotoxy(xp + 90,6 + i);
+		cout << pCurCou->enrolling << " / " << pCurCou->maxStu ;	
 		pCurCou = pCurCou->pNext;
-		i += 22;
+		i ++;
 	}
 }
-
 
 void createCourseRegister(Year *&pCurYear, int orderSem){
 	system("cls");
@@ -539,26 +539,24 @@ void createCourseRegister(Year *&pCurYear, int orderSem){
 			while ( c1 != 'B' && c1 != 'b' && c2 != 'B' && c2 != 'b'){
 				int soluong = -1;
 				listCourse(pCurYear,orderSem,soluong);
-				gotoxy(1,1);
-				cout << soluong;
-				gotoxy(xp,soluong + 17);
+				gotoxy(xp,5 + soluong + 5);
 				cout << "Move arrow keys and enter to choose a course, then ...";
-				printBox("Press E to edit the course",xp,21,size);
-				printBox("Press D to delete the course",xp,24,size);
-				printBox("Press B to back",xp,27,size);	
+				printBox("Press E to edit the course",xp,5 + soluong + 8,size);
+				printBox("Press D to delete the course",xp,5 + soluong + 11,size);
+				printBox("Press B to back",xp,5 + soluong + 14,size);	
 				
 				c2 = '1'; 
 				int orderCou = 0;
-				gotoxy(32,16);
+				gotoxy(3,6);
 				while (c2 != 13 && c2 != 'B' && c2 != 'b'){
 					c2 = getch();
-					if (c2 == 75 && orderCou > 0){ // trai
+					if (c2 == 72 && orderCou > 0){ // len
 						orderCou --;
-						gotoxy (32 + orderCou * 22,16);
+						gotoxy (3,6 + orderCou);
 					}
-					else if (c2 == 77 && orderCou < soluong ){ // phai
+					else if (c2 == 80 && orderCou < soluong ){ // xuong
 						orderCou ++;
-						gotoxy (32 + orderCou * 22,16);	
+						gotoxy (3,6 + orderCou);	
 					}	
 				}
 				if (c2 == 'B' || c2 == 'b')
