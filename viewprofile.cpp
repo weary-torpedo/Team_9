@@ -350,8 +350,21 @@ void createCourseRegister(Year *&pCurYear, int orderSem){
 		printBox("Press O to log out",xp,11,size);	
 	
 		char c = getch();
-		if ( c == 'A' || c == 'a')
-			createCourseCSV(pCurYear,orderSem);
+		if ( c == 'A' || c == 'a'){
+			int tmp;
+			system("cls");
+			gotoxy(xp,5);
+			cout << "Please press 1 or 2 to import course(s) ";
+			gotoxy(xp,6);
+			cout << "1. Import one by one. ";
+			gotoxy(xp,7);
+			cout << "2. Import CSV file. ";
+			cin >> tmp;
+			if ( tmp == 1)
+				createCourse(pCurYear, orderSem);
+			else
+				createCourseCSV(pCurYear,orderSem);
+		}
 		else if ( c == 'C' || c == 'c'){
 			char c1 = '1', c2 = '1';
 			while ( c1 != 'B' && c1 != 'b' && c2 != 'B' && c2 != 'b'){
