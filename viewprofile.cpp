@@ -340,9 +340,106 @@ void editCourse(Year *&pCurYear, int orderSem, int orderCou){
 			gotoxy (50,5 + orderInfo);	
 		}	
 	}
+	
+	
+	gotoxy(xp,25);
+	cout << "Do you want change to : ";
+	gotoxy (32,25);
+	fflush(stdin);
+	switch(orderInfo){
+		case 0:{
+			getline(cin, pCurCou->IDCou, '\n');
+			break;
+		}
+		case 1:{
+			getline(cin, pCurCou->nameCou, '\n');
+			break;
+		}
+		case 2:{
+			cin >> pCurCou->credits;
+			break;
+		}
+		case 3:{
+			getline(cin, pCurCou->day1, '\n');
+			break;
+		}
+		case 4:{
+			getline(cin, pCurCou->session1, '\n');
+			break;
+		}
+		case 5:{
+			getline(cin, pCurCou->day2, '\n');
+			break;
+		}	
+		case 6:{
+			getline(cin, pCurCou->session2, '\n');
+			break;
+		}	
+		case 7:{
+			getline(cin, pCurCou->teacher, '\n');
+			break;
+		}		
+		case 8:{
+			cin >> pCurCou->maxStu;
+		}		
+	}
+	
+	gotoxy(xp,27);
+	cout << "Edit successfully";
+	getch();	
+}
 }
 
 void deleteCourse(Year *&pCurYear, int orderSem, int orderCou){
+	system("cls");
+	
+	Course *pHeadCou, *pRemove;
+	switch (orderSem){
+		case 1:{
+			pHeadCou = pCurYear->Sem1.pHeadCou;
+			break;
+		}
+		case 2:{
+			pHeadCou = pCurYear->Sem2.pHeadCou;
+			break;
+		}
+		case 3:{
+			pHeadCou = pCurYear->Sem3.pHeadCou;
+		}
+	}
+	
+	if (orderCou == 0){
+		pRemove = pHeadCou;
+		pHeadCou = pHeadCou->pNext;	
+		switch (orderSem){
+		case 1:{
+			pCurYear->Sem1.pHeadCou = pHeadCou;
+			break;
+		}
+		case 2:{
+			pCurYear->Sem2.pHeadCou = pHeadCou;
+			break;
+		}
+		case 3:{
+			pCurYear->Sem3.pHeadCou = pHeadCou;
+		}
+	}	
+	}
+	else{
+		Course *pCurCou = pHeadCou;
+		int t = 1;
+		while (pCurCou->pNext != NULL && t != orderCou){
+			pCurCou = pCurCou->pNext;
+			t++;		
+		}
+		pRemove = pCurCou->pNext;
+		pCurCou->pNext = pCurCou->pNext->pNext;		
+	}
+	delete pRemove;
+	
+	gotoxy(xp,5);
+	cout << "Delete successfully";
+	getch();
 }
 
 void listCourse(Year *&pCurYear, int orderSem, int &soluong){
