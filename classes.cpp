@@ -59,7 +59,7 @@ void ImportClasses (Class *&pheadClass, Year *&curYear);
 void OutPutStu (Class *pheadClass);
 bool CheckScheduleCou (Student *curStu, Course *curEnroll, Course *pHead);
 void Runtest ();
-
+void PrintCourse (Year *pCurYear, int semester);
 int main (){
     Year *pheadYear = new Year;
     pheadYear -> pNext = new Year; 
@@ -282,6 +282,53 @@ bool CheckScheduleCou (Student *curStu, Course *curEnroll, Course *pHead){
     return false;
 }
 
+void PrintCourse (Year *pCurYear, int semester){
+    Course *pHeadCou;
+    switch (semester){
+		case 1:{
+			pHeadCou = pCurYear->Sem1.pHeadCou;
+			break;
+		}
+		case 2:{
+			pHeadCou = pCurYear->Sem2.pHeadCou;
+			break;
+		}
+		case 3:{
+			pHeadCou = pCurYear->Sem3.pHeadCou;
+            break;
+		}
+	}
+    Course *pCurCou = pHeadCou;
+    int count = 1;
+    string tmp;
+    cout.width(8);
+    cout << left << "No"; cout.width (10);
+    cout <<  "ID" ; cout.width(25);
+    cout << "Name course" ; cout.width(10);
+    cout << "Credit" ; cout.width(10);
+    cout << "Day 1" ; cout.width(15); 
+    cout << "Session 1" ; cout.width(10);
+    cout << "Day 2" ; cout.width(15);
+    cout << "Session 2"; cout.width(20);
+    cout << "Teacher" ; cout.width(10);
+    cout << "Student" << endl; 
+	while (pCurCou != NULL){
+        cout.width(8);
+        cout << left << count;  cout.width(10);
+		cout <<  pCurCou->IDCou; cout.width(25);
+		cout << pCurCou->nameCou ; cout.width(10);
+		cout << pCurCou->credits ; cout.width(10);
+		cout << pCurCou->day1 ; cout.width(15);
+		cout << pCurCou->session1 ; cout.width(10);
+		cout << pCurCou->day2 ; cout.width(15);
+		cout << pCurCou->session2 ; cout.width(20);
+		cout << pCurCou->teacher; cout.width(10);
+        tmp = to_string(pCurCou -> enrolling) + "/" + to_string(pCurCou->maxStu);
+		cout << tmp << endl;
+		pCurCou = pCurCou->pNext;
+        count ++;
+	}	
+}
 
 void Runtest(){
     Student *stu = new Student;
