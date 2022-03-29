@@ -38,7 +38,7 @@ struct Course{
 	int credits;
 	int maxStu, enrolling;
 	string day1, day2;
-	string session1, session2;
+	string session1, session2; //bu?i h?c
 	Student* pHeadInclasstu;
 	Course* pNext;
 };
@@ -317,12 +317,62 @@ void importStuOfCou (Year *&pcurYear, int &orderSem){
 	FILE.close();	
 }
 
+void listStuOfCou (Year *&pcurYear, int &orderSem, int orderCou){
+	system("cls");
+	gotoxy(xp,5);
+	cout << "NO";
+	gotoxy(xp + 5,5);
+	cout << "STUDENT ID";
+	gotoxy(xp + 17,5);
+	cout << "NAME ";
+	gotoxy(xp + 40,5);
+	cout << "BIRTH DATE";
+	gotoxy(xp + 55 ,5);
+	cout << "SOCIAL ID";
+	
+	Course *pHeadCou;
+	switch (orderSem){
+		case 1:{
+			pHeadCou = pcurYear->Sem1.pHeadCou;
+			break;
+		}
+		case 2:{
+			pHeadCou = pcurYear->Sem2.pHeadCou;
+			break;
+		}
+		case 3:{
+			pHeadCou = pcurYear->Sem3.pHeadCou;
+		}
+	}
+		
+	Course *pCurCou = pHeadCou;	
+	for ( int i = 0; i < orderCou; i++){
+		pCurCou = pCurCou->pNext; 
+	}
+	
+	Student *pCurStu = pCurCou->pHeadInclasstu;
+	for ( int i = 1; i <= pCurCou->enrolling; i++){
+		gotoxy(xp,5+i);
+		cout << pCurStu->No;
+		gotoxy(xp + 5,5+i);
+		cout << pCurStu->IDStu;
+		gotoxy(xp + 17,5+i);
+		cout << pCurStu->firstname << " " << pCurStu->lastname;
+		gotoxy(xp + 40,5+i);
+		cout << pCurStu->date;
+		gotoxy(xp + 55 ,5+i);
+		cout << pCurStu->IDSocial;
+		pCurStu = pCurStu->pNext;		
+	}
+		getch();
+}
+
 void staffSee(Year *&pcurYear, int orderSem){
 	while (!logOut){
 		system("cls");
 		printBox("Press 1 to see list of classes",xp,5,50);
 		printBox("Press 2 to see list of courses",xp,8,50);
-		printBox("Press O to lsog out",xp,11,50);
+		printBox("Press O to log out",xp,11,50);
 		
 		char c = getch();
 		if (c == 'o' || c == 'O'){
@@ -332,10 +382,35 @@ void staffSee(Year *&pcurYear, int orderSem){
 // Thinh
 //	else if ( c == '1')
 //			createYear(pcurYear);
-	else if ( c == '2'){
+	else if ( c == '2')
+			while ( true){
 				importStuOfCou (pcurYear, orderSem);
-				listCourse(pcurYear,orderSem,soluong);	
-				getch();
+				listCourse(pcurYear,orderSem,soluong);
+				gotoxy(xp,5 + soluong + 5);
+				cout << "Move arrow keys and enter to choose a course,";
+				gotoxy(xp,5 + soluong + 6);
+				cout << "then you can see list of students in that course";
+				printBox("Press B to back",xp,5 + soluong + 9,25);	
+				
+				char c1 = '1'; 
+				int orderCou = 0;
+				gotoxy(3,6);
+				while (c1 != 13 && c1 != 'B' && c1 != 'b'){
+					c1 = getch();
+					if (c1 == 72 && orderCou > 0){ // len
+						orderCou --;
+						gotoxy (3,6 + orderCou);
+					}
+					else if (c1 == 80 && orderCou < soluong ){ // xuong
+						orderCou ++;
+						gotoxy (3,6 + orderCou);	
+					}	
+				}
+				
+				if (c1 == 'B' || c1 == 'b')
+					break;
+				else if (c1 == 13)
+					listStuOfCou(pcurYear,orderSem,orderCou);
 			}
 	}
 }
