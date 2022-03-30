@@ -56,16 +56,10 @@ struct Year{
 	int start, end;
 };
 
-Year *pheadYear = NULL, *pcurYear; 
+Year *pcurYear; 
 string startDateRegister, endDateRegister;
 bool logOut;
 int orderSem, soluong;
-
-void gotoxy(int x, int y);
-void printBox(string text, int x, int y, int size);
-void box(int x, int y, int w, int h);
-bool loginCheck(string username, string password);
-string loginSystem();
 
 void staffSee(Year *&pcurYear, int orderSem);
 
@@ -87,22 +81,28 @@ void OutPutStu (Class *pheadClass);
 
 void createYear(Year *&pcurYear);
 
-void staffCreate(Year *&pheadYear, Year *&pcurYear, int &orderSem);
+void staffCreate(Year *&pcurYear, int &orderSem);
 
 void changePass(string username);
 void viewProfile(Student *pStu);
 void homePage(Student *pStu, string username);
 
+void gotoxy(int x, int y);
+void printBox(string text, int x, int y, int size);
+void box(int x, int y, int w, int h);
+bool loginCheck(string username, string password);
+string loginSystem();
+
 int main(){
 
-	// đăng nhập xong từ username dò ra Student->ID
+	// Ä‘Äƒng nháº­p xong tá»« username dÃ² ra Student->ID
 	Student *pStu = new Student; 
 	pStu->IDStu = "21127637";
 	pStu->lastname = "Phan";
 	pStu->firstname = "Linh";	
 	
-	/* mọi người lúc chạy thử phải tạo năm học mới, kì học mới mới thêm được môn học
-	đã có exportCourse nên danh sách môn học sẽ được giữ (dù logOut) cho đến khi tắt màn hinh console
+	/* má»i ngÆ°á»i lÃºc cháº¡y thá»­ pháº£i táº¡o nÄƒm há»c má»›i, kÃ¬ há»c má»›i má»›i thÃªm Ä‘Æ°á»£c mÃ´n há»c
+	Ä‘Ã£ cÃ³ exportCourse nÃªn danh sÃ¡ch mÃ´n há»c sáº½ Ä‘Æ°á»£c giá»¯ (dÃ¹ logOut) cho Ä‘áº¿n khi táº¯t mÃ n hinh console
 	*/
 
 	do{
@@ -112,7 +112,7 @@ int main(){
 		homePage(pStu, username);
 		if (!logOut)
 			if (!('2' <= username[0] && username[0] <= '9')){
-				staffCreate(pheadYear, pcurYear, orderSem);
+				staffCreate(pcurYear, orderSem);
 				staffSee(pcurYear, orderSem);
 			}
 				
@@ -122,112 +122,6 @@ int main(){
 	
 	gotoxy(30,30);
 	return 0;
-}
-
-void gotoxy(int x, int y){
-    COORD c;
-    c.X = x - 1;
-    c.Y = y - 1;
-    SetConsoleCursorPosition (GetStdHandle(STD_OUTPUT_HANDLE), c);
-} 
-
-void printBox(string text, int x, int y, int size){	
-	gotoxy(x,y);
-	cout << char (218);
-	for ( int j = 1; j <= size; j++)
-		cout << char(196);
-	cout << char (191);
-	
-	gotoxy(x,y+1);
-	cout << char (179);		
-	gotoxy(x + size/2 + 1 - text.length()/2, y+1 );
-	cout << text;
-	gotoxy(x+size + 1,y+1);
-	cout << char (179);
-		
-	gotoxy(x,y+2);
-	cout << char (192);
-	for ( int j = 1; j <= size; j++)
-		cout << char(196);
-	cout << char (217);		
-}
-
-void box(int x, int y, int w, int h){
-	for(int i = x; i <= x + w; i++){
-		gotoxy(i, y);
-		cout << char(196);
-		gotoxy(i, y + h);
-		cout << char(196);
-	}
-	for(int i = y; i <= y + h; i++){
-		gotoxy(x, i);
-		cout << char(179);
-		gotoxy(x + w, i);
-		cout << char(179);
-	}
-	gotoxy(x, y); cout << char(218);
-	gotoxy(x, y + h); cout << char(192);
-	gotoxy(x + w, y); cout << char(191);
-	gotoxy(x + w, y + h); cout << char(217);
-}
-
-bool loginCheck(string username, string password){
-	ifstream fin;
-	if(username[0] >= '0' && username[0] <= '9'){
-		fin.open("loginStu.txt");
-		string userCheck, passCheck;
-		while(!fin.eof()){
-			fin >> userCheck >> passCheck;
-			if(username == userCheck && password == passCheck)
-				return true;
-		}
-		return false;
-	}
-	else if(username[0] == 's'){
-			fin.open("loginStaff.txt");
-			string userCheck, passCheck;
-			while(!fin.eof()){
-				fin >> userCheck >> passCheck;
-				if(username == userCheck && password == passCheck)
-					return true;
-			}
-			return false;
-		 }
-		 else return false;
-}
-
-string loginSystem(){
-	system("cls");
-	string username, password;
-	gotoxy(41,11);
-	cout << "USERNAME:";
-	box(50,10,25,2);
-	gotoxy(41,14);
-	cout << "PASSWORD:";
-	box(50,13,25,2);
-	int again = 0;
-	while(again < 5){
-		gotoxy(52,11);
-		cin >> username;
-		gotoxy(52,14);
-		cin >> password;
-		if(loginCheck(username,password)){
-			return username;
-		}
-		else{
-			again++;
-			gotoxy(52,11);
-			for(int i = 1; i <= username.length(); i++)
-				cout << " ";
-			gotoxy(52,14);
-			for(int i = 1; i <= password.length(); i++)
-				cout << " ";
-			gotoxy(48,17);
-			cout << "INVALID USERNAME OR PASSWORD. PLEASE TRY AGAIN.";	
-		}
-	}
-	username = "invalid";
-	return username;
 }
 
 void importStuOfCou (Year *&pcurYear, int &orderSem){
@@ -317,7 +211,7 @@ void importStuOfCou (Year *&pcurYear, int &orderSem){
 	FILE.close();	
 }
 
-void listStuOfCou (Year *&pcurYear, int &orderSem, int orderCou){
+void listStuOfCou (Year *&pcurYear, int &orderSem, int orderCou, bool print){
 	system("cls");
 	gotoxy(xp,5);
 	cout << "NO";
@@ -364,7 +258,38 @@ void listStuOfCou (Year *&pcurYear, int &orderSem, int orderCou){
 		cout << pCurStu->IDSocial;
 		pCurStu = pCurStu->pNext;		
 	}
+	
+	if (print){
+		string tmp = pCurCou->IDCou + ".csv";
+		fstream FILE;
+		FILE.open(tmp, ios::out);	
+		FILE << pCurCou->IDCou << ",";
+		FILE << pCurCou->nameCou << ",";
+		FILE << pCurCou->credits << ",";
+		FILE << pCurCou->day1 << ",";
+		FILE << pCurCou->session1 << ",";
+		FILE << pCurCou->day2 << ",";
+		FILE << pCurCou->session2 << ",";
+		FILE << pCurCou->teacher << ",";
+		FILE << pCurCou->maxStu << ",";
+		FILE << pCurCou->enrolling;
+		pCurStu = pCurCou->pHeadInclasstu;
+		for ( int i = 1; i <= pCurCou->enrolling; i++){
+			FILE << "\n" << pCurStu->No << ",";
+			FILE << pCurStu->IDStu << ",";
+			FILE << pCurStu->firstname << ",";
+			FILE << pCurStu->lastname << ",";
+			FILE << pCurStu->date << ",";
+			FILE << pCurStu->IDSocial;
+			pCurStu = pCurStu->pNext;		
+	}
+		FILE.close();	
+		gotoxy(xp, 5 + soluong + 12 );
+		cout << "You printed successfully!";
+		gotoxy(xp, 5 + soluong + 13 );
+		cout << "PRESS ENTER TO GO BACK...";
 		getch();
+	}
 }
 
 void listClass(Year* pcurYear, int &soluong){
@@ -487,8 +412,16 @@ void staffSee(Year *&pcurYear, int orderSem){
 				
 				if (c1 == 'B' || c1 == 'b')
 					break;
-				else if (c1 == 13)
-					listStuOfCou(pcurYear,orderSem,orderCou);
+				else if (c1 == 13){
+					listStuOfCou(pcurYear,orderSem,orderCou, 0);
+					gotoxy(xp, 5 + soluong + 9 );
+					cout << "Do you want to print list of students: ";
+					gotoxy(xp, 5 + soluong + 10 );
+					cout << "Y for Yes, N for No:  ";					
+					cin >> c1;
+					if ( c1 == 'Y' || c1 == 'y')
+						listStuOfCou(pcurYear,orderSem,orderCou, 1);
+				}	
 			}
 	}
 }
@@ -1044,7 +977,7 @@ void ImportNewStu (string filename,  Class *curClass){
             }
             pcur -> No = stoi (tmp); 
             getline (ifile, tmp, ',');
-            pcur -> IDStu = stoi (tmp);
+            pcur -> IDStu = tmp;
             getline (ifile, tmp,',');
             pcur -> firstname = tmp.erase(0,1);
             getline (ifile, tmp,',');
@@ -1091,7 +1024,7 @@ void ImportOldStu(string filename, Class*& cHead) {
                     else curClass->pHeadStu = pcur;
                     pcur->No = stoi(tmp);
                     getline(ifile, tmp, ',');
-                    pcur->IDStu = stoi(tmp);
+                    pcur->IDStu = tmp;
                     getline(ifile, tmp, ',');
                     pcur->firstname = tmp.erase(0, 1);
                     getline(ifile, tmp, ',');
@@ -1165,33 +1098,36 @@ void OutPutStu (Class *pheadClass){
     }
 }
 
-void createYear(Year *&pcurYear){
-	while (pcurYear != NULL)
-		pcurYear = pcurYear->pNext;
-		
-	Year *pNew = new Year;
-	pNew->pHeadClass = NULL;
-	
+void createYear(Year *&pcurYear){	
 	system ("cls");
+	if (pcurYear == NULL)
+		pcurYear = new Year;
+	pcurYear->pHeadClass = NULL;
+	pcurYear->Sem1.pHeadCou = NULL;
+	pcurYear->Sem2.pHeadCou = NULL;
+	pcurYear->Sem3.pHeadCou = NULL;
+	
 	cout << "\n\n\n\n\n\n";
 	cout << "        " << "When does the school year start?  ";
-	cin >> pNew->start;
+	cin >> pcurYear->start;
 	cout << "\n\n        " << "When does the school year start?  "; 
-	cin >> pNew->end;
+	cin >> pcurYear->end;
 	cout << "\n\n        " << "You created successfully!";
 	cout << "\n        " << "PRESS ENTER TO GO BACK...";
-	if ( pheadYear == NULL)	
-		pheadYear = pNew;
-	pcurYear = pNew;
-	pcurYear->pNext = NULL;	
+	
+	fstream FILE;
+	FILE.open ("exportYear.txt",ios::out);
+	FILE << pcurYear->start << " " << pcurYear->end;
+	FILE.close();
+	
 	getch();
-
 }
 
-void staffCreate(Year *&pheadYear, Year *&pcurYear, int &orderSem){
-	pcurYear = pheadYear;
+void staffCreate(Year *&pcurYear, int &orderSem){
 	while (!logOut){
 		system("cls");
+		gotoxy(xp,3);
+		cout << "At the beginning of school year...";
 		printBox("Press 1 to create a school year",xp,5,50);
 		printBox("Press 2 to create a class",xp,8,50);
 		printBox("Press 3 to create a semester",xp,11,50);
@@ -1211,9 +1147,9 @@ void staffCreate(Year *&pheadYear, Year *&pcurYear, int &orderSem){
 	else if ( c == '3')
 			createSemester(pcurYear,orderSem);
 	else if ( c == '4')
-			createCourseRegister(pcurYear, orderSem);		
-	else if (c == 13)
-		return;
+			createCourseRegister(pcurYear, orderSem);	
+	else if ( c == 13)
+			return;
 	}
 }
 
@@ -1316,8 +1252,9 @@ void homePage(Student *pStu, string username){
 		if ('2' <= username[0] && username[0] <= '9')
 			printBox("Press V to view profile",xp,5,35);
 		printBox("Press C to change password",xp,8,35);
-		printBox("Press O to log out",xp,11,35);
-		printBox("Press Enter to do other operations",xp,14,35);
+		printBox("Press Enter to continue",xp,11,35);
+		printBox("Press O to log out",xp,14,35);
+		
 
 		char c = getch();
 		if ( c == 'C' || c == 'c')
@@ -1331,4 +1268,127 @@ void homePage(Student *pStu, string username){
 	else if ( c == 13)
 		return;
 	}
+}
+
+void importData(){
+	fstream FILE;
+	FILE.open("exportYear.txt",ios::in);
+	int start_year, end_year;
+	FILE >> start_year >> end_year;
+	if (start_year && end_year){
+		pcurYear = new Year;
+		pcurYear->start = start_year;
+		pcurYear->end = end_year;
+		// import other data (class, sem1 course, sem2 course, sem3 course
+	}
+	else
+		pcurYear = NULL;
+		
+	FILE.close();
+}
+
+void box(int x, int y, int w, int h){
+	for(int i = x; i <= x + w; i++){
+		gotoxy(i, y);
+		cout << char(196);
+		gotoxy(i, y + h);
+		cout << char(196);
+	}
+	for(int i = y; i <= y + h; i++){
+		gotoxy(x, i);
+		cout << char(179);
+		gotoxy(x + w, i);
+		cout << char(179);
+	}
+	gotoxy(x, y); cout << char(218);
+	gotoxy(x, y + h); cout << char(192);
+	gotoxy(x + w, y); cout << char(191);
+	gotoxy(x + w, y + h); cout << char(217);
+}
+
+bool loginCheck(string username, string password){
+	ifstream fin;
+	if(username[0] >= '0' && username[0] <= '9'){
+		fin.open("loginStu.txt");
+		string userCheck, passCheck;
+		while(!fin.eof()){
+			fin >> userCheck >> passCheck;
+			if(username == userCheck && password == passCheck)
+				return true;
+		}
+		return false;
+	}
+	else if(username[0] == 's'){
+			fin.open("loginStaff.txt");
+			string userCheck, passCheck;
+			while(!fin.eof()){
+				fin >> userCheck >> passCheck;
+				if(username == userCheck && password == passCheck)
+					return true;
+			}
+			return false;
+		 }
+		 else return false;
+}
+
+string loginSystem(){
+	system("cls");
+	string username, password;
+	gotoxy(41,11);
+	cout << "USERNAME:";
+	box(50,10,25,2);
+	gotoxy(41,14);
+	cout << "PASSWORD:";
+	box(50,13,25,2);
+	int again = 0;
+	while(again < 5){
+		gotoxy(52,11);
+		cin >> username;
+		gotoxy(52,14);
+		cin >> password;
+		if(loginCheck(username,password)){
+			return username;
+		}
+		else{
+			again++;
+			gotoxy(52,11);
+			for(int i = 1; i <= username.length(); i++)
+				cout << " ";
+			gotoxy(52,14);
+			for(int i = 1; i <= password.length(); i++)
+				cout << " ";
+			gotoxy(48,17);
+			cout << "INVALID USERNAME OR PASSWORD. PLEASE TRY AGAIN.";	
+		}
+	}
+	username = "invalid";
+	return username;
+}
+
+void gotoxy(int x, int y){
+    COORD c;
+    c.X = x - 1;
+    c.Y = y - 1;
+    SetConsoleCursorPosition (GetStdHandle(STD_OUTPUT_HANDLE), c);
+} 
+
+void printBox(string text, int x, int y, int size){	
+	gotoxy(x,y);
+	cout << char (218);
+	for ( int j = 1; j <= size; j++)
+		cout << char(196);
+	cout << char (191);
+	
+	gotoxy(x,y+1);
+	cout << char (179);		
+	gotoxy(x + size/2 + 1 - text.length()/2, y+1 );
+	cout << text;
+	gotoxy(x+size + 1,y+1);
+	cout << char (179);
+		
+	gotoxy(x,y+2);
+	cout << char (192);
+	for ( int j = 1; j <= size; j++)
+		cout << char(196);
+	cout << char (217);		
 }
