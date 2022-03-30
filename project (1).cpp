@@ -367,6 +367,60 @@ void listStuOfCou (Year *&pcurYear, int &orderSem, int orderCou){
 		getch();
 }
 
+void listClass(Year* pcurYear, int &soluong){
+	system("cls");
+	gotoxy(xp,5);
+	cout << "(Move arrow keys and enter to choose a class if you want to see list of students in that class)";
+	gotoxy(xp,6);
+	cout << "LIST OF CLASSES:";
+
+	Class* pHeadClass = pcurYear->pHeadClass;
+	Class* pCurClass = pHeadClass;
+	soluong = -1;
+	int i = 0;
+	while(pCurClass != NULL){
+		soluong++;
+		gotoxy(xp+5,7+i);
+		cout << pCurClass->className;
+		pCurClass = pCurClass->pNext;
+		i++;
+	}
+}
+
+void listStuofClass(Year* pcurYear, int orderClass){
+	system("cls");
+	gotoxy(xp,5);
+	cout << "NO";
+	gotoxy(xp + 5,5);
+	cout << "STUDENT ID";
+	gotoxy(xp + 17,5);
+	cout << "NAME ";
+	gotoxy(xp + 40,5);
+	cout << "BIRTH DATE";
+	gotoxy(xp + 55 ,5);
+	cout << "SOCIAL ID";
+
+	Class* pCurClass = pcurYear->pHeadClass;
+	for(int i = 0; i < orderClass; i++){
+		pCurClass = pCurClass->pNext;
+	}
+	Student* pCurStu = pCurClass->pHeadStu;
+	for ( int i = 1; i <= pCurClass->numberOfStu; i++){
+		gotoxy(xp,5+i);
+		cout << pCurStu->No;
+		gotoxy(xp + 5,5+i);
+		cout << pCurStu->IDStu;
+		gotoxy(xp + 17,5+i);
+		cout << pCurStu->lastname << " " << pCurStu->firstname;
+		gotoxy(xp + 40,5+i);
+		cout << pCurStu->date;
+		gotoxy(xp + 55 ,5+i);
+		cout << pCurStu->IDSocial;
+		pCurStu = pCurStu->pNext;		
+	}
+	getch();
+}
+
 void staffSee(Year *&pcurYear, int orderSem){
 	while (!logOut){
 		system("cls");
@@ -379,9 +433,33 @@ void staffSee(Year *&pcurYear, int orderSem){
 			logOut = true;
 			return;
 		}
-// Thinh
-//	else if ( c == '1')
-//			createYear(pcurYear);
+	else if ( c == '1')
+			while(true){
+				listClass(pcurYear, soluong);
+				printBox("Press B to back",xp,5 + soluong + 9,25);
+				char c1 = '1';
+				int orderClass = 0;
+				gotoxy(3,7);
+				while(c1 != 13 && c1 != 'B' && c1 !='b'){
+					c1 = getch();
+					if(c1 == 72 && orderClass > 0){
+						orderClass--;
+						gotoxy(3,7 + orderClass);
+					}
+					else if (c1 == 80 && orderClass < soluong ){
+						orderClass ++;
+						gotoxy (3,7 + orderClass);	
+					}	
+				}
+
+				if(c1 == 'B' || c1 =='b'){
+					break;
+				}
+				else if(c1 == 13){
+					listStuofClass(pcurYear,orderClass);
+				}
+			}
+			
 	else if ( c == '2')
 			while ( true){
 				importStuOfCou (pcurYear, orderSem);
