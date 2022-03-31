@@ -70,6 +70,10 @@ void deleteCourse(Year *&pCurYear, int orderSem, int orderCou);
 void exportCourse(Year *pCurYear, int orderSem);
 void listCourse(Year *pCurYear, int orderSem, int &soluong);
 void createCourseRegister(Year *&pCurYear, int &orderSem);
+void PrintCourse (Year *pCurYear, int semester);
+void RegisterCou(Year *pcurYear, int sem, Course *pHead, Student *curStu);
+bool CheckScheduleCou (Student *curStu, Course *curEnroll, Course *pHead);
+void Runtest (Year *pcurYear, int sem, Student *curStu);
 
 void createSemester(Year *&pCurYear, int &orderSem);
 
@@ -908,6 +912,142 @@ void createCourseRegister(Year *&pCurYear, int &orderSem){
 		return;
 		}
 	}
+}
+
+//Hàm dùng in danh sách các khóa học ra console cho học sinh chọn
+//Sau khi chọn xong dùng lại hàm này sẽ cập nhập số lượng học sinh đang đăng ký
+//khóa học
+void PrintCourse (Year *pCurYear, int orderSem){
+    Course *pHeadCou;
+    switch (orderSem){
+		case 1:{
+			pHeadCou = pCurYear->Sem1.pHeadCou;
+			break;
+		}
+		case 2:{
+			pHeadCou = pCurYear->Sem2.pHeadCou;
+			break;
+		}
+		case 3:{
+			pHeadCou = pCurYear->Sem3.pHeadCou;
+            break;
+		}
+	}
+    Course *pCurCou = pHeadCou;
+    int count = 1;
+    string tmp;
+    cout.width(8);
+    cout << left << "No"; cout.width (10);
+    cout <<  "ID" ; cout.width(25);
+    cout << "Name course" ; cout.width(10);
+    cout << "Credit" ; cout.width(10);
+    cout << "Day 1" ; cout.width(15); 
+    cout << "Session 1" ; cout.width(10);
+    cout << "Day 2" ; cout.width(15);
+    cout << "Session 2"; cout.width(20);
+    cout << "Teacher" ; cout.width(10);
+    cout << "Student" << endl; 
+	while (pCurCou != NULL){
+        cout.width(8);
+        cout << left << count;  cout.width(10);
+		cout <<  pCurCou->IDCou; cout.width(25);
+		cout << pCurCou->nameCou ; cout.width(10);
+		cout << pCurCou->credits ; cout.width(10);
+		cout << pCurCou->day1 ; cout.width(15);
+		cout << pCurCou->session1 ; cout.width(10);
+		cout << pCurCou->day2 ; cout.width(15);
+		cout << pCurCou->session2 ; cout.width(20);
+		cout << pCurCou->teacher; cout.width(10);
+        tmp = to_string(pCurCou -> enrolling) + "/" + to_string(pCurCou->maxStu);
+		cout << tmp << endl;
+		pCurCou = pCurCou->pNext;
+        count ++;
+	}	
+}
+
+//hàm dùng để check xem lịch của môn đang đăng ký có bị trùng với lịch của các
+//môn đã đăng ký không 
+bool CheckScheduleCou (Student *curStu, Course *curEnroll, Course *pHead){
+    string *Enrolled = new string [5];
+    int count = 0, j = 0;
+    int length = strlen (pHead -> IDCou.c_str());
+    string tmp = curStu -> course.substr(j, length);
+    if (tmp == "\0") 
+        return false;
+    while (tmp != "\0"){
+        Enrolled[count] = tmp;
+        if (tmp == curEnroll -> IDCou)
+            return true;
+        j += length;
+        tmp = curStu -> course.substr(j, length);
+        count ++;
+    }
+    Course *pcur; 
+    for (int i = 0; i < count; i++){
+        pcur = pHead;
+        while (pcur != nullptr && pcur -> IDCou != Enrolled[i])
+            pcur = pcur -> pNext;
+        if (pcur -> day1 == curEnroll -> day1 && pcur -> session1 == curEnroll -> session1) 
+            return true;
+        else if (pcur -> day1 == curEnroll -> day2 && pcur -> session1 == curEnroll -> session2)
+            return true;
+        else if (pcur -> day2 == curEnroll -> day1 && pcur -> session2 == curEnroll -> session1)
+            return true;
+        else if (pcur -> day2 == curEnroll -> day2 && pcur -> session2 == curEnroll -> session2)
+            return true;
+    }
+    return false;
+}
+
+// hàm dùng để lấy nhận từ bàn phím số No của course và trả về course
+void RegisterCou(Year *pcurYear, int orderSem, Course *pHead, Student *curStu){
+    int maxCourse = 0;
+    Course *pcur = pHead;
+    while (pcur != nullptr){
+        maxCourse++;
+        pcur = pcur -> pNext;
+    }  
+    int no = 0;
+    while (no <= 0 || no > maxCourse){
+        system ("clear");
+        PrintCourse (pcurYear, orderSem);
+        cout << "Enter the No of the course: ";
+        cin >> no;
+    }
+    int count = 1; 
+    pcur = pHead;
+    while (count != no){
+        pcur = pcur -> pNext;
+        count ++;
+    }
+    if (pcur -> enrolling >= pcur -> maxStu || CheckScheduleCou (curStu, pcur, pHead) == true)
+        cout << "You can not enroll this course" << endl;
+    else {
+        system ("clear");
+        curStu -> course += pcur -> IDCou;
+        pcur -> enrolling += 1;
+        PrintCourse (pcurYear, orderSem);
+        cout << "You enroll this course sucessfully";
+    } 
+} 
+
+void Runtest(Year *pcurYear, int orderSem, student *curStu){
+    Course *pHeadCou;
+    switch (orderSem){
+		case 1:{
+			pHeadCou = pCurYear->Sem1.pHeadCou;
+			break;
+		}
+		case 2:{
+			pHeadCou = pCurYear->Sem2.pHeadCou;
+			break;
+		}
+		case 3:{
+			pHeadCou = pCurYear->Sem3.pHeadCou;
+            break;
+		}
+	}
+    RegisterCou (pcurYear, orderSem, pHeadCou, curStu); 
 }
 
 void createSemester(Year *&pCurYear, int &orderSem){
