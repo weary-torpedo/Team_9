@@ -87,6 +87,8 @@ void createYear(Year *&pcurYear);
 
 void staffCreate(Year *&pcurYear, int &orderSem);
 
+int checkTime();
+
 void changePass(string username);
 void viewProfile(Student *pStu);
 void homePage(Student *pStu, string username);
@@ -99,28 +101,27 @@ string loginSystem();
 
 int main(){
 
-	// Ä‘Äƒng nháº­p xong tá»« username dÃ² ra Student->ID
-	Student *pStu = new Student; 
-	pStu->IDStu = "21127637";
-	pStu->lastname = "Phan";
-	pStu->firstname = "Linh";	
-	
-	/* má»i ngÆ°á»i lÃºc cháº¡y thá»­ pháº£i táº¡o nÄƒm há»c má»›i, kÃ¬ há»c má»›i má»›i thÃªm Ä‘Æ°á»£c mÃ´n há»c
-	Ä‘Ã£ cÃ³ exportCourse nÃªn danh sÃ¡ch mÃ´n há»c sáº½ Ä‘Æ°á»£c giá»¯ (dÃ¹ logOut) cho Ä‘áº¿n khi táº¯t mÃ n hinh console
-	*/
+	Student *pStudent = new Student; 
+	pStudent->IDStu = "21127637";
+	pStudent->lastname = "Phan";
+	pStudent->firstname = "Linh";	
+
 
 	do{
 		logOut = false;
 		gotoxy(20,20);
 		string username =  loginSystem();
-		homePage(pStu, username);
-		if (!logOut)
-			if (!('2' <= username[0] && username[0] <= '9')){
+		homePage(pStudent, username);
+		int time = checkTime();
+		
+		if (!logOut && !('2' <= username[0] && username[0] <= '9') && time == 1)
 				staffCreate(pcurYear, orderSem);
+//		if (!logOut && ('2' <= username[0] && username[0] <= '9') && time == 2)
+//				Runtest(pcurYear, 1, pStudent);
+		if (!logOut && !('2' <= username[0] && username[0] <= '9') && time == 2)
 				staffSee(pcurYear, orderSem);
-			}
-				
-			// else student	
+//		if (!logOut && !('2' <= username[0] && username[0] <= '9') && time == 3)
+//				staffScore(pcurYear, orderSem);	
 	}
 	while (logOut);
 	
@@ -1031,19 +1032,19 @@ void RegisterCou(Year *pcurYear, int orderSem, Course *pHead, Student *curStu){
     } 
 } 
 
-void Runtest(Year *pcurYear, int orderSem, student *curStu){
+void Runtest(Year *pcurYear, int orderSem, Student *curStu){
     Course *pHeadCou;
     switch (orderSem){
 		case 1:{
-			pHeadCou = pCurYear->Sem1.pHeadCou;
+			pHeadCou = pcurYear->Sem1.pHeadCou;
 			break;
 		}
 		case 2:{
-			pHeadCou = pCurYear->Sem2.pHeadCou;
+			pHeadCou = pcurYear->Sem2.pHeadCou;
 			break;
 		}
 		case 3:{
-			pHeadCou = pCurYear->Sem3.pHeadCou;
+			pHeadCou = pcurYear->Sem3.pHeadCou;
             break;
 		}
 	}
@@ -1408,6 +1409,22 @@ void homePage(Student *pStu, string username){
 	else if ( c == 13)
 		return;
 	}
+}
+
+int checkTime(){
+	system("cls");
+	gotoxy(20,xp);
+	cout << "I want to know when you logged in system";
+	gotoxy(20,xp+1);
+	cout << "1 for at beginning the semester";
+	gotoxy(20,xp+2);
+	cout << "2 for the course registration is active";
+	gotoxy(20,xp+3);
+	cout << "3 for at the end of the semester";
+	gotoxy(20,xp+5);
+	int t;
+	cin >> t;
+	return t;
 }
 
 void importData(){
