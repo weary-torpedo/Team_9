@@ -56,7 +56,6 @@ struct Year{
 	int start, end;
 };
 
-Year *pcurYear; 
 string startDateRegister, endDateRegister;
 bool logOut;
 int orderSem, soluong;
@@ -93,6 +92,8 @@ void changePass(string username);
 void viewProfile(Student *pStu);
 void homePage(Student *pStu, string username);
 
+void importData(Year *&pcurYear);
+
 void gotoxy(int x, int y);
 void printBox(string text, int x, int y, int size);
 void box(int x, int y, int w, int h);
@@ -106,7 +107,8 @@ int main(){
 	pStudent->lastname = "Phan";
 	pStudent->firstname = "Linh";	
 
-
+	Year *pcurYear;
+	importData(pcurYear);
 	do{
 		logOut = false;
 		gotoxy(20,20);
@@ -129,13 +131,11 @@ int main(){
 	return 0;
 }
 
-void importStuOfCou (Year *&pcurYear, int &orderSem){
-	string tmp;
+void importCourse (string filename, Year *&pcurYear, int orderSem){
 	fstream FILE;
-	FILE.open("StuOfCou.csv", ios::in);
-	getline(FILE,tmp,'\n');
-	orderSem = (int)tmp[3] - 48;
+	FILE.open(filename, ios::in);
 	
+	string tmp;
 	tmp = "";
 	Course *pHeadCou = NULL, *pCurCou;
 
@@ -188,7 +188,8 @@ void importStuOfCou (Year *&pcurYear, int &orderSem){
 				pCurInclasstu->pNext =  pNewStu;
 			pCurInclasstu =  pNewStu;	
 		}
-        pCurInclasstu->pNext = NULL;
+        if (pCurInclasstu != NULL)
+			pCurInclasstu->pNext = NULL;
         
 		if (pHeadCou == NULL)
 			pHeadCou = pNewCou;
@@ -196,7 +197,8 @@ void importStuOfCou (Year *&pcurYear, int &orderSem){
 			pCurCou->pNext = pNewCou;
 		pCurCou = pNewCou;
 	}
-	pCurCou->pNext = NULL;		
+	if (pCurCou != NULL)
+		pCurCou->pNext = NULL;		
 	
 	switch (orderSem){
 		case 1:{
@@ -207,11 +209,8 @@ void importStuOfCou (Year *&pcurYear, int &orderSem){
 			pcurYear->Sem2.pHeadCou = pHeadCou;
 			break;
 		}
-		case 3:{
-			pcurYear->Sem3.pHeadCou = pHeadCou;
-			break;
-		}
-			
+		case 3:
+			pcurYear->Sem3.pHeadCou = pHeadCou;	
 	}
 	FILE.close();	
 }
@@ -392,7 +391,19 @@ void staffSee(Year *&pcurYear, int orderSem){
 			
 	else if ( c == '2')
 			while ( true){
-				importStuOfCou (pcurYear, orderSem);
+				switch (orderSem){
+					case 1:{
+						importCourse ("Sem1.csv", pcurYear, orderSem);
+						break;
+					}
+					case 2:{
+						importCourse ("Sem2.csv", pcurYear, orderSem);
+						break;
+					}
+					case 3:{
+						importCourse ("Sem3.csv", pcurYear, orderSem);
+					}
+				}
 				listCourse(pcurYear,orderSem,soluong);
 				gotoxy(xp,5 + soluong + 5);
 				cout << "Move arrow keys and enter to choose a course,";
@@ -732,23 +743,22 @@ void deleteCourse(Year *&pCurYear, int orderSem, int orderCou){
 
 void exportCourse(Year *pCurYear, int orderSem){
 	fstream FILE;
-	FILE.open("ExportCourse.csv",ios::out);
-
+	
 	Course *pHeadCou;
 	switch (orderSem){
 		case 1:{
 			pHeadCou = pCurYear->Sem1.pHeadCou;
-			FILE << "Sem1\n";
+			FILE.open("Sem1.csv",ios::out);
 			break;
 		}
 		case 2:{
 			pHeadCou = pCurYear->Sem2.pHeadCou;
-			FILE << "Sem2\n";
+			FILE.open("Sem2.csv",ios::out);
 			break;
 		}
 		case 3:{
 			pHeadCou = pCurYear->Sem3.pHeadCou;
-			FILE << "Sem3\n";
+			FILE.open("Sem3.csv",ios::out);
 		}
 	}
 		
@@ -764,9 +774,19 @@ void exportCourse(Year *pCurYear, int orderSem){
 		FILE << pCurCou->teacher << ",";
 		FILE << pCurCou->maxStu  << ",";
 		FILE << pCurCou->enrolling << "\n";
+		
+		Student *pCurStu = pCurCou->pHeadInclasstu;
+		for ( int i = 1; i <= pCurCou->enrolling; i++){
+			FILE << pCurStu->No << "," ;
+			FILE << pCurStu->IDStu << "," ;
+			FILE << pCurStu->firstname << "," ;
+			FILE << pCurStu->lastname << "," ;
+			FILE << pCurStu->date << "," ;
+			FILE << pCurStu->IDSocial << "\n" ;
+			pCurStu = pCurStu->pNext;		
+		}
 		pCurCou = pCurCou->pNext;
 	}		
-
 	FILE.close();
 }
 
@@ -1051,7 +1071,7 @@ void Runtest(Year *pcurYear, int orderSem, Student *curStu){
     RegisterCou (pcurYear, orderSem, pHeadCou, curStu); 
 }
 
-void createSemester(Year *&pCurYear, int &orderSem){
+void createSemester(Year *&pcurYear, int &orderSem){
 	system("cls");
 	cout << "\n\n\n\n\n\n";
 	cout << "        " << "Which sem do you want to create? ";
@@ -1061,17 +1081,33 @@ void createSemester(Year *&pCurYear, int &orderSem){
 	cout << "\n\n        ";
 	cin >> orderSem;
 	
+	cout << "\n\n        " << "When does the semester start? ";
+	cin.ignore();
 	switch (orderSem){
 		case 1:{
-			pCurYear->Sem1.pHeadCou = NULL;
+			cin >> pcurYear->Sem1.startDate;
 			break;
 		};
 		case 2:{
-			pCurYear->Sem2.pHeadCou = NULL;
+			cin >> pcurYear->Sem2.startDate;
 			break;
 		}
 		case 3:
-			pCurYear->Sem3.pHeadCou = NULL;
+			cin >> pcurYear->Sem3.startDate;
+	}
+	cout << "\n\n        " << "When does the semester end? ";
+	cin.ignore();
+	switch (orderSem){
+		case 1:{
+			cin >> pcurYear->Sem1.endDate;
+			break;
+		};
+		case 2:{
+			cin >> pcurYear->Sem2.endDate;
+			break;
+		}
+		case 3:
+			cin >> pcurYear->Sem3.endDate;
 	}
 	
 	cout << "\n        " << "You created successfully!";
@@ -1247,6 +1283,13 @@ void createYear(Year *&pcurYear){
 	pcurYear->Sem1.pHeadCou = NULL;
 	pcurYear->Sem2.pHeadCou = NULL;
 	pcurYear->Sem3.pHeadCou = NULL;
+	fstream FILE;
+	FILE.open("Sem1.csv",ios::out);
+	FILE.close();
+	FILE.open("Sem2.csv",ios::out);
+	FILE.close();
+	FILE.open("Sem3.csv",ios::out);
+	FILE.close();
 	
 	cout << "\n\n\n\n\n\n";
 	cout << "        " << "When does the school year start?  ";
@@ -1256,8 +1299,7 @@ void createYear(Year *&pcurYear){
 	cout << "\n\n        " << "You created successfully!";
 	cout << "\n        " << "PRESS ENTER TO GO BACK...";
 	
-	fstream FILE;
-	FILE.open ("exportYear.txt",ios::out);
+	FILE.open ("Year.txt",ios::out);
 	FILE << pcurYear->start << " " << pcurYear->end;
 	FILE.close();
 	
@@ -1427,21 +1469,25 @@ int checkTime(){
 	return t;
 }
 
-void importData(){
+void importData(Year *&pcurYear){
 	fstream FILE;
-	FILE.open("exportYear.txt",ios::in);
+	FILE.open("Year.txt",ios::in);
 	int start_year, end_year;
 	FILE >> start_year >> end_year;
+	FILE.close();
 	if (start_year && end_year){
 		pcurYear = new Year;
 		pcurYear->start = start_year;
 		pcurYear->end = end_year;
-		// import other data (class, sem1 course, sem2 course, sem3 course
+		
+		pcurYear->pHeadClass = NULL; // import class
+
+		importCourse("Sem1.csv", pcurYear, 1);
+		importCourse("Sem2.csv", pcurYear, 2);
+		importCourse("Sem3.csv", pcurYear, 3);
 	}
 	else
-		pcurYear = NULL;
-		
-	FILE.close();
+		pcurYear = NULL;	
 }
 
 void box(int x, int y, int w, int h){
