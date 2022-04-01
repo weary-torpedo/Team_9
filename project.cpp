@@ -356,6 +356,13 @@ void listStuofClass(Year* pcurYear, int orderClass){
 }
 
 void staffSee(Year *&pcurYear, int orderSem){
+	if (pcurYear->Sem1.pHeadCou != NULL)
+			orderSem = 1;
+	if (pcurYear->Sem2.pHeadCou != NULL)
+			orderSem = 2;
+	if (pcurYear->Sem3.pHeadCou != NULL)
+			orderSem = 3;
+			
 	while (!logOut){
 		system("cls");
 		printBox("Press 1 to see list of classes",xp,5,50);
@@ -584,7 +591,21 @@ void createCourse(Year *&pCurYear, int orderSem){
 		pCurCou->pNext = pNew;
 	pCurCou = pNew;
 	pCurCou->pNext = NULL;
-			
+
+	switch (orderSem){
+		case 1:{
+			pCurYear->Sem1.pHeadCou = pHeadCou;
+			break;
+		}
+		case 2:{
+			pCurYear->Sem2.pHeadCou = pHeadCou;
+			break;
+		}
+		case 3:{
+			pCurYear->Sem3.pHeadCou = pHeadCou;
+		}
+	}
+							
 	getch();	
 }
 
