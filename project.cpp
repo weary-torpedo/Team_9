@@ -14,13 +14,17 @@ struct NodePass{
     NodePass* pNext;
 };
 
+struct Score {
+    float Mid;
+    float Final;
+    float Other;
+    float GPA;
+} 
+
 struct Student{
 	int No, IDSocial;
 	string firstname, lastname,gender, date, IDStu, course;
-	float Final;
-	float Mid;
-	float Other;
-	float Total;
+    Score *Inclass;
 	Student* pNext;
 };
 
@@ -39,7 +43,7 @@ struct Course{
 	int maxStu, enrolling;
 	string day1, day2;
 	string session1, session2; //bu?i h?c
-	Student* pHeadInclasstu;
+	Student* Stu;
 	Course* pNext;
 };
 
@@ -73,6 +77,7 @@ void PrintCourse (Year *pCurYear, int semester);
 void RegisterCou(Year *pcurYear, int sem, Course *pHead, Student *curStu);
 bool CheckScheduleCou (Student *curStu, Course *curEnroll, Course *pHead);
 void Runtest (Year *pcurYear, int sem, Student *curStu);
+void UpdateData (Year *pCurYear, int semester, bool yearCreated);
 
 void createSemester(Year *&pCurYear, int &orderSem);
 
@@ -1069,6 +1074,51 @@ void Runtest(Year *pcurYear, int orderSem, Student *curStu){
 		}
 	}
     RegisterCou (pcurYear, orderSem, pHeadCou, curStu); 
+}
+
+void UpdateData (Year *pCurYear, int semester, bool yearCreated){
+    if (yearCreated == false)
+        return;
+    Course *pHeadCou;
+    switch (semester){
+		case 1:{
+			pHeadCou = pCurYear->Sem1.pHeadCou;
+			break;
+		}
+		case 2:{
+			pHeadCou = pCurYear->Sem2.pHeadCou;
+			break;
+		}
+		case 3:{
+			pHeadCou = pCurYear->Sem3.pHeadCou;
+            break;
+		}
+	} 
+    Course *pCurCou = pHeadCou;
+    while (pCurCou != nullptr){
+        pCurCou -> Stu = new Student *[pCurCou -> enrolling];
+        pCurCou = pCurCou -> pNext;
+    }
+    *pCurCou = pHeadCou;
+    Class *pCurClass = pCurYear -> pHeadClass;
+    Student *pCurStu;
+    int k;
+    int lenth = strlen (pCurCou -> IDCou.c_str());
+    while (pCurClass != nullptr){
+        pCurStu = pCurClass -> pHeadStu;
+        int maxCou = strlen (pCurStu -> IDCou.c_str()) / length;
+        for (int i = 0; i < pCurClass -> numberOfStu; i++){
+            pCurStu -> Inclass = new Score [maxCou];
+            for (int j = 0; j < maxCou; j++){
+                for (k  = 0; k < pCurCou -> enrolling; k++)
+                    if (pCurCou -> Stu[k] == '\0')
+                       break;
+                Stu[k] = pCurStu;
+            }
+            pCurStu = pCurStu -> pNext;
+        }
+        pCurClass = pCurClass -> pNext;
+    }             
 }
 
 void createSemester(Year *&pcurYear, int &orderSem){
