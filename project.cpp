@@ -19,7 +19,7 @@ struct Score {
     float Final;
     float Other;
     float GPA;
-} 
+};
 
 struct Student{
 	int No, IDSocial;
@@ -84,6 +84,7 @@ void createSemester(Year *&pCurYear, int &orderSem);
 Class* CreateClass(Class*& phead, string tmp, Year*& curyear);
 void ImportNewStu (string filename,  Class *curClass);
 void ImportOldStu(string filename, Class*& cHead);
+void ImportOldData (Year *&curYear);
 void ImportClasses (Class *&pheadClass, Year *&pcurYear);
 void OutPutStu (Class *pheadClass);
 
@@ -1247,50 +1248,63 @@ void ImportNewStu (string filename,  Class *curClass){
 void ImportOldStu(string filename, Class*& cHead) {
     ifstream ifile(filename.c_str());
     string tmp;
-    Class *curClass = new Class;
     getline(ifile, tmp, ',');
     if (tmp == "\0") {
         return;
     }
+    Class *curClass;
+    if (cHead != nullptr) {
+        curClass = cHead;
+        while (curClass -> pNext != nullptr)
+            curClass = curClass -> pNext;
+    }
+    else curClass = new Class;
     while (!ifile.eof()) {
-            if (tmp != "\0") {
-                int j = 0;
-                if (j != 0) {
-                    curClass->pNext = new Class;
-                    curClass = curClass->pNext;
-                }
-                else curClass = cHead;
-                curClass->className = tmp;
-                getline(ifile, tmp, '\n');
-                curClass->numberOfStu = stoi(tmp.c_str());
-                for (int i = curClass->numberOfStu; i > 0; i--) {
-                    Student* pcur = new Student;
-                    if (i != curClass->numberOfStu) {
-                        pcur->pNext = new Student;
-                        pcur = pcur->pNext;
-                    }
-                    else curClass->pHeadStu = pcur;
-                    pcur->No = stoi(tmp);
-                    getline(ifile, tmp, ',');
-                    pcur->IDStu = tmp;
-                    getline(ifile, tmp, ',');
-                    pcur->firstname = tmp.erase(0, 1);
-                    getline(ifile, tmp, ',');
-                    pcur->lastname = tmp.erase(0, 1);
-                    getline(ifile, tmp, ',');
-                    pcur->gender = tmp.erase(0, 1);
-                    getline(ifile, tmp, ',');
-                    pcur->date = tmp.erase(0, 1);
-                    getline(ifile, tmp, '\n');
-                    pcur->IDSocial = stoi(tmp.c_str());
-                    pcur->pNext = nullptr;
-                    getline(ifile, tmp, ',');
-                }
-                j++;
+        if (tmp != "\0") {
+            if ( cHead != nullptr) {
+                curClass->pNext = new Class;
+                curClass = curClass->pNext;
             }
-            else break;
+            else cHead = curClass;
+            
+            curClass->className = tmp;
+            getline(ifile, tmp, '\n');
+            curClass->numberOfStu = stoi(tmp.c_str());
+            getline (ifile, tmp, ',');
+            for (int i = curClass->numberOfStu; i > 0; i--) {
+                Student* pcur = new Student;
+                if (i != curClass->numberOfStu) {
+                    pcur->pNext = new Student;
+                    pcur = pcur->pNext;
+                }
+                else curClass->pHeadStu = pcur;
+                pcur->No = stoi(tmp.c_str());
+                getline(ifile, tmp, ',');
+                pcur->IDStu = stoi(tmp.c_str());
+                getline(ifile, tmp, ',');
+                pcur->firstname = tmp.erase(0, 1);
+                getline(ifile, tmp, ',');
+                pcur->lastname = tmp.erase(0, 1);
+                getline(ifile, tmp, ',');
+                pcur->gender = tmp.erase(0, 1);
+                getline(ifile, tmp, ',');
+                pcur->date = tmp.erase(0, 1);         
+                getline(ifile, tmp, '\n');
+                pcur->IDSocial = stoi(tmp.c_str());
+                pcur->pNext = nullptr;
+                getline(ifile, tmp, ',');
+            }
         }
+        else break;
+    }
     ifile.close();
+}
+
+//Chỉ cần gọi hàm này để nhập dữ liệu từ các file data
+void ImportOldData (Year *&curYear){
+    string tmp = "datayear";
+    for (int i = 4; i > 1; i--)
+        ImportOldStu (tmp + to_string(i) + ".csv", curYear -> pHeadClass);
 }
 
 void ImportClasses (Class *&pheadClass, Year *&pcurYear){
