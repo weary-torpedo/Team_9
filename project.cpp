@@ -61,7 +61,7 @@ struct Year{
 };
 
 string startDateRegister, endDateRegister;
-bool logOut;
+bool logOut, isRegister;
 int orderSem, soluong;
 
 void staffSee(Year *&pcurYear, int orderSem);
@@ -120,16 +120,21 @@ int main(){
 		gotoxy(20,20);
 		string username =  loginSystem();
 		homePage(pStudent, username);
-		int time = checkTime();
+		int time;
+		
+		if (!logOut && !('2' <= username[0] && username[0] <= '9'))
+			time = checkTime();
 		
 		if (!logOut && !('2' <= username[0] && username[0] <= '9') && time == 1)
 				staffCreate(pcurYear, orderSem);
-//		if (!logOut && ('2' <= username[0] && username[0] <= '9') && time == 2)
-//				Runtest(pcurYear, 1, pStudent);
 		if (!logOut && !('2' <= username[0] && username[0] <= '9') && time == 2)
 				staffSee(pcurYear, orderSem);
 //		if (!logOut && !('2' <= username[0] && username[0] <= '9') && time == 3)
 //				staffScore(pcurYear, orderSem);	
+		if (!logOut && ('2' <= username[0] && username[0] <= '9') && isRegister)
+				Runtest(pcurYear, orderSem, pStudent);
+
+
 	}
 	while (logOut);
 	
@@ -167,8 +172,8 @@ void importCourse (string filename, Year *&pcurYear, int orderSem){
         pNewCou -> enrolling = stoi (tmp);
         tmp = "";
         
-        pNewCou -> pHeadInclasstu = NULL;
-        Student *pCurInclasstu = pNewCou -> pHeadInclasstu;
+        pNewCou -> Stu = NULL;
+        Student *pCurInclasstu = pNewCou -> Stu;
         
         for ( int i = 0; i < pNewCou->enrolling; i++){
         	Student *pNewStu = new Student;
@@ -188,8 +193,8 @@ void importCourse (string filename, Year *&pcurYear, int orderSem){
             getline (FILE, tmp,'\n');
             pNewStu -> IDSocial = stoi (tmp);
             tmp = "";
-     		if (pNewCou -> pHeadInclasstu == NULL)
-			pNewCou -> pHeadInclasstu =  pNewStu;
+     		if (pNewCou -> Stu == NULL)
+			pNewCou -> Stu =  pNewStu;
 			if (pCurInclasstu != NULL)
 				pCurInclasstu->pNext =  pNewStu;
 			pCurInclasstu =  pNewStu;	
@@ -254,7 +259,7 @@ void listStuOfCou (Year *&pcurYear, int &orderSem, int orderCou, bool print){
 		pCurCou = pCurCou->pNext; 
 	}
 	
-	Student *pCurStu = pCurCou->pHeadInclasstu;
+	Student *pCurStu = pCurCou->Stu;
 	for ( int i = 1; i <= pCurCou->enrolling; i++){
 		gotoxy(xp,5+i);
 		cout << pCurStu->No;
@@ -283,7 +288,7 @@ void listStuOfCou (Year *&pcurYear, int &orderSem, int orderCou, bool print){
 		FILE << pCurCou->teacher << ",";
 		FILE << pCurCou->maxStu << ",";
 		FILE << pCurCou->enrolling;
-		pCurStu = pCurCou->pHeadInclasstu;
+		pCurStu = pCurCou->Stu;
 		for ( int i = 1; i <= pCurCou->enrolling; i++){
 			FILE << "\n" << pCurStu->No << ",";
 			FILE << pCurStu->IDStu << ",";
@@ -357,12 +362,6 @@ void listStuofClass(Year* pcurYear, int orderClass){
 }
 
 void staffSee(Year *&pcurYear, int orderSem){
-	if (pcurYear->Sem1.pHeadCou != NULL)
-			orderSem = 1;
-	if (pcurYear->Sem2.pHeadCou != NULL)
-			orderSem = 2;
-	if (pcurYear->Sem3.pHeadCou != NULL)
-			orderSem = 3;
 			
 	while (!logOut){
 		system("cls");
@@ -455,6 +454,22 @@ void staffSee(Year *&pcurYear, int orderSem){
 	}
 }
 
+bool activeCourseRegister(Year *&pcurYear){
+	fstream FILE;
+	FILE.open ("Year.txt",ios::out);
+	FILE << pcurYear->start << " " << pcurYear->end << " 1";
+	FILE.close();
+	
+	system("cls");
+	cout << "\n\n\n\n\n\n";
+	cout << "        " << "The course registration for the latest semester is active successfully";
+	cout << "\n\n        " << "You created successfully!";
+	cout << "\n        " << "PRESS ENTER TO GO BACK...";
+	getch();
+		
+	return true;
+}
+
 void createCourseCSV(Year *&pCurYear, int orderSem){
 	system("cls");
 	Course *pHeadCou;
@@ -498,7 +513,7 @@ void createCourseCSV(Year *&pCurYear, int orderSem){
 		getline(FILE,tmp, '\n');
         pNew -> maxStu = stoi (tmp);
         pNew -> enrolling = 0;
-        pNew -> pHeadInclasstu = NULL;
+        pNew -> Stu = NULL;
 		tmp = "";
 		if (pHeadCou == NULL)
 			pHeadCou = pNew;
@@ -559,7 +574,7 @@ void createCourse(Year *&pCurYear, int orderSem){
 		pCurCou = pCurCou->pNext;
 	
 	Course *pNew = new Course;
-	pNew->pHeadInclasstu= NULL;
+	pNew->Stu= NULL;
 	
 	system ("cls");
 	cout << "\n\n\n\n\n\n";
@@ -802,7 +817,7 @@ void exportCourse(Year *pCurYear, int orderSem){
 		FILE << pCurCou->maxStu  << ",";
 		FILE << pCurCou->enrolling << "\n";
 		
-		Student *pCurStu = pCurCou->pHeadInclasstu;
+		Student *pCurStu = pCurCou->Stu;
 		for ( int i = 1; i <= pCurCou->enrolling; i++){
 			FILE << pCurStu->No << "," ;
 			FILE << pCurStu->IDStu << "," ;
@@ -873,9 +888,9 @@ void listCourse(Year *pCurYear, int orderSem, int &soluong){
 	}
 }
 
-void createCourseRegister(Year *&pCurYear, int &orderSem){
+void createCourseRegister(Year *&pcurYear, int &orderSem){
 	system("cls");
-	if (orderSem == 1 || orderSem == 2 || orderSem == 3){
+	if ((orderSem == 1 && pcurYear->Sem1.pHeadCou == NULL)|| (orderSem == 2 && pcurYear->Sem2.pHeadCou == NULL) || (orderSem == 3 && pcurYear->Sem3.pHeadCou == NULL)){
 		cout << "\n\n\n\n\n\n";
 		cout << "        " << "When does the course registration start? (DD/MM/YYYY) ";
 		cin >> startDateRegister;
@@ -885,15 +900,7 @@ void createCourseRegister(Year *&pCurYear, int &orderSem){
 		cout << "\n        " << "PRESS ENTER TO GO BACK...";
 		getch();		
 	}
-	else{
-		string tmp;
-		fstream FILE;
-		FILE.open("ExportCourse.csv", ios::in);
-		getline(FILE,tmp,'\n');
-		orderSem = (int)tmp[3] - 48;
-		FILE.close();	
-	}
-	
+
 	int size = 35;
 	while (true){
 		system("cls");
@@ -915,15 +922,15 @@ void createCourseRegister(Year *&pCurYear, int &orderSem){
 			gotoxy(xp,8);
 			cin >> TMP;
 			if ( TMP == 1)
-				createCourse(pCurYear, orderSem);
+				createCourse(pcurYear, orderSem);
 			else
-				createCourseCSV(pCurYear,orderSem);
+				createCourseCSV(pcurYear,orderSem);
 		}
 			
 		else if ( c == 'C' || c == 'c'){
 			char c1 = '1', c2 = '1';
 			while ( c1 != 'B' && c1 != 'b' && c2 != 'B' && c2 != 'b'){
-				listCourse(pCurYear,orderSem,soluong);
+				listCourse(pcurYear,orderSem,soluong);
 				gotoxy(xp,5 + soluong + 5);
 				cout << "Move arrow keys and enter to choose a course, then ...";
 				printBox("Press E to edit the course",xp,5 + soluong + 8,size);
@@ -949,19 +956,18 @@ void createCourseRegister(Year *&pCurYear, int &orderSem){
 				if (c2 == 13)
 					c1 = getch();
 				if ( c1 == 'E' || c1 == 'e')
-					editCourse(pCurYear,orderSem,orderCou);
+					editCourse(pcurYear,orderSem,orderCou);
 				else if (c1 == 'D' || c1 == 'd')
-					deleteCourse(pCurYear,orderSem,orderCou);
+					deleteCourse(pcurYear,orderSem,orderCou);
 			}
 	}
 	else if ( c == 'O' || c == 'o'){
-		exportCourse(pCurYear, orderSem);
+		exportCourse(pcurYear, orderSem);
 		logOut = true;
 		return;
 		}
 	}
 }
-
 //Hàm dùng in danh sách các khóa học ra console cho học sinh chọn
 //Sau khi chọn xong dùng lại hàm này sẽ cập nhập số lượng học sinh đang đăng ký
 //khóa học
@@ -1012,7 +1018,6 @@ void PrintCourse (Year *pCurYear, int orderSem){
         count ++;
 	}	
 }
-
 //hàm dùng để check xem lịch của môn đang đăng ký có bị trùng với lịch của các
 //môn đã đăng ký không 
 bool CheckScheduleCou (Student *curStu, Course *curEnroll, Course *pHead){
@@ -1046,7 +1051,6 @@ bool CheckScheduleCou (Student *curStu, Course *curEnroll, Course *pHead){
     }
     return false;
 }
-
 // hàm dùng để lấy nhận từ bàn phím số No của course và trả về course
 void RegisterCou(Year *pcurYear, int orderSem, Course *pHead, Student *curStu){
     int maxCourse = 0;
@@ -1071,32 +1075,13 @@ void RegisterCou(Year *pcurYear, int orderSem, Course *pHead, Student *curStu){
     if (pcur -> enrolling >= pcur -> maxStu || CheckScheduleCou (curStu, pcur, pHead) == true)
         cout << "You can not enroll this course" << endl;
     else {
-        system ("clear");
+        system ("cls");
         curStu -> course += pcur -> IDCou;
         pcur -> enrolling += 1;
         PrintCourse (pcurYear, orderSem);
         cout << "You enroll this course sucessfully";
     } 
 } 
-
-void Runtest(Year *pcurYear, int orderSem, Student *curStu){
-    Course *pHeadCou;
-    switch (orderSem){
-		case 1:{
-			pHeadCou = pcurYear->Sem1.pHeadCou;
-			break;
-		}
-		case 2:{
-			pHeadCou = pcurYear->Sem2.pHeadCou;
-			break;
-		}
-		case 3:{
-			pHeadCou = pcurYear->Sem3.pHeadCou;
-            break;
-		}
-	}
-    RegisterCou (pcurYear, orderSem, pHeadCou, curStu); 
-}
 
 void UpdateData (Year *pCurYear, int semester, bool yearCreated){
     if (yearCreated == false)
@@ -1141,6 +1126,25 @@ void UpdateData (Year *pCurYear, int semester, bool yearCreated){
         }
         pCurClass = pCurClass -> pNext;
     }             
+}
+
+void Runtest(Year *pcurYear, int orderSem, Student *curStu){
+    Course *pHeadCou;
+    switch (orderSem){
+		case 1:{
+			pHeadCou = pcurYear->Sem1.pHeadCou;
+			break;
+		}
+		case 2:{
+			pHeadCou = pcurYear->Sem2.pHeadCou;
+			break;
+		}
+		case 3:{
+			pHeadCou = pcurYear->Sem3.pHeadCou;
+            break;
+		}
+	}
+    RegisterCou (pcurYear, orderSem, pHeadCou, curStu); 
 }
 
 void createSemester(Year *&pcurYear, int &orderSem){
@@ -1307,6 +1311,7 @@ void ImportOldData (Year *&curYear){
         ImportOldStu (tmp + to_string(i) + ".csv", curYear -> pHeadClass);
 }
 
+
 void ImportClasses (Class *&pheadClass, Year *&pcurYear){
 	system("cls");
     int n;
@@ -1400,8 +1405,9 @@ void staffCreate(Year *&pcurYear, int &orderSem){
 		printBox("Press 2 to create a class",xp,8,50);
 		printBox("Press 3 to create a semester",xp,11,50);
 		printBox("Press 4 to create a course registration session",xp,14,50);
-		printBox("Press O to log out",xp,17,50);
-		printBox("Press Enter to do other operations",xp,20,50);
+		printBox("Press 5 to active course registration session",xp,17,50);
+		printBox("Press O to log out",xp,20,50);
+		printBox("Press Enter to do other operations",xp,23,50);
 		
 		char c = getch();
 		if (c == 'o' || c == 'O'){
@@ -1415,7 +1421,9 @@ void staffCreate(Year *&pcurYear, int &orderSem){
 	else if ( c == '3')
 			createSemester(pcurYear,orderSem);
 	else if ( c == '4')
-			createCourseRegister(pcurYear, orderSem);	
+			createCourseRegister(pcurYear, orderSem);
+	else if ( c == '5')
+			isRegister = activeCourseRegister(pcurYear);	
 	else if ( c == 13)
 			return;
 	}
@@ -1558,7 +1566,7 @@ void importData(Year *&pcurYear){
 	fstream FILE;
 	FILE.open("Year.txt",ios::in);
 	int start_year, end_year;
-	FILE >> start_year >> end_year;
+	FILE >> start_year >> end_year >> isRegister;
 	FILE.close();
 	if (start_year && end_year){
 		pcurYear = new Year;
@@ -1570,6 +1578,12 @@ void importData(Year *&pcurYear){
 		importCourse("Sem1.csv", pcurYear, 1);
 		importCourse("Sem2.csv", pcurYear, 2);
 		importCourse("Sem3.csv", pcurYear, 3);
+		if (pcurYear->Sem1.pHeadCou != NULL)
+			orderSem = 1;
+		if (pcurYear->Sem2.pHeadCou != NULL)
+			orderSem = 2;
+		if (pcurYear->Sem3.pHeadCou != NULL)
+			orderSem = 3;	
 	}
 	else
 		pcurYear = NULL;	
@@ -1666,14 +1680,12 @@ void printBox(string text, int x, int y, int size){
 	for ( int j = 1; j <= size; j++)
 		cout << char(196);
 	cout << char (191);
-	
 	gotoxy(x,y+1);
 	cout << char (179);		
 	gotoxy(x + size/2 + 1 - text.length()/2, y+1 );
 	cout << text;
 	gotoxy(x+size + 1,y+1);
 	cout << char (179);
-		
 	gotoxy(x,y+2);
 	cout << char (192);
 	for ( int j = 1; j <= size; j++)
