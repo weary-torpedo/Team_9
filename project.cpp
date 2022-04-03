@@ -1083,6 +1083,9 @@ void RegisterCou(Year *pcurYear, int orderSem, Course *pHead, Student *curStu){
     } 
 } 
 
+// Hàm dùng để nhập dữ liệu và nối liên kết giữa các biến
+// dùng khi khởi động lại chương trình, khi kết thúc đăng ký học phần
+// khi kết thúc đăng ký học phần cần kèm thêm điều kiện đã kết thúc học phần
 void UpdateData (Year *pCurYear, int semester, bool yearCreated){
     if (yearCreated == false)
         return;
@@ -1102,31 +1105,42 @@ void UpdateData (Year *pCurYear, int semester, bool yearCreated){
 		}
 	} 
     Course *pCurCou = pHeadCou;
+    // tạo dynamic array của student trong course dựa trên số lượng enrolling
     while (pCurCou != nullptr){
         pCurCou -> Stu = new Student *[pCurCou -> enrolling];
         pCurCou = pCurCou -> pNext;
     }
-    *pCurCou = pHeadCou;
     Class *pCurClass = pCurYear -> pHeadClass;
     Student *pCurStu;
+    // k dùng để dò xem course đã cập nhật được bao nhiêu học sinh rồi
     int k;
-    int lenth = strlen (pCurCou -> IDCou.c_str());
+    int length = strlen (pCurCou -> IDCou.c_str());
+    // length là độ dài được quy định của tên course
+    // vòng lặp được chạy qua từng học sinh và dò course mà các học sinh đó đã
+    // đăng ký, nếu tên course đăng ký trùng với tên course có sẵn thì pointer
+    // của học sinh sẽ được cập nhật trong course
     while (pCurClass != nullptr){
-        pCurStu = pCurClass -> pHeadStu;
-        int maxCou = strlen (pCurStu -> IDCou.c_str()) / length;
-        for (int i = 0; i < pCurClass -> numberOfStu; i++){
+        for (int j = 0; j < pCurClass -> numberOfStu; j++){
+            pCurStu = pCurClass -> pHeadStu;
+            int maxCou = strlen (pCurStu -> course.c_str()) / length;
             pCurStu -> Inclass = new Score [maxCou];
-            for (int j = 0; j < maxCou; j++){
-                for (k  = 0; k < pCurCou -> enrolling; k++)
-                    if (pCurCou -> Stu[k] == '\0')
-                       break;
-                Stu[k] = pCurStu;
+            for (int i = 0; i < maxCou; i++){
+                pCurCou = pHeadCou;
+                while (pCurCou == nullptr || pCurCou -> IDCou != pCurStu -> course.substr(i*length, length))
+                    pCurCou = pCurCou -> pNext;
+                if (pCurCou == nullptr)
+                    continue;
+                k = 0;
+                while (pCurCou -> Stu[k] != '\0')
+                    k++;
+                pCurCou -> Stu[k] = pCurStu;
             }
-            pCurStu = pCurStu -> pNext;
+            pCurStu = pCurStu -> pNext;  
         }
         pCurClass = pCurClass -> pNext;
     }             
 }
+
 
 void Runtest(Year *pcurYear, int orderSem, Student *curStu){
     Course *pHeadCou;
