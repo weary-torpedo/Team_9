@@ -104,21 +104,17 @@ void gotoxy(int x, int y);
 void printBox(string text, int x, int y, int size);
 void box(int x, int y, int w, int h);
 bool loginCheck(string username, string password);
+Student* afterLog(string username, Year* pcurYear);
 string loginSystem();
 
 int main(){
-
-	Student *pStudent = new Student; 
-	pStudent->IDStu = "21127637";
-	pStudent->lastname = "Phan";
-	pStudent->firstname = "Linh";	
-
 	Year *pcurYear;
 	importData(pcurYear);
 	do{
 		logOut = false;
 		gotoxy(20,20);
 		string username =  loginSystem();
+		Student* pStudent = afterLog(username,pcurYear);
 		homePage(pStudent, username);
 		int time;
 		
@@ -1645,6 +1641,21 @@ bool loginCheck(string username, string password){
 			return false;
 		 }
 		 else return false;
+}
+
+Student* afterLog(string username, Year* pcurYear){
+	Class* pClass = pcurYear->pHeadClass;
+	while(pClass != NULL){
+		if(pClass->className[0] == username[0] && pClass->className[1] == username[1]){
+			Student* pStu = pClass->pHeadStu;
+			while(pStu != NULL){
+				if(pStu->IDStu == username)
+					return pStu;
+				pStu = pStu->pNext;
+			}
+		}
+		pClass = pClass->pNext;
+	}
 }
 
 string loginSystem(){
