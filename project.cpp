@@ -1383,13 +1383,6 @@ void createYear(Year *&pcurYear){
 	pcurYear->Sem1.pHeadCou = NULL;
 	pcurYear->Sem2.pHeadCou = NULL;
 	pcurYear->Sem3.pHeadCou = NULL;
-	fstream FILE;
-	FILE.open("Sem1.csv",ios::out);
-	FILE.close();
-	FILE.open("Sem2.csv",ios::out);
-	FILE.close();
-	FILE.open("Sem3.csv",ios::out);
-	FILE.close();
 	
 	cout << "\n\n\n\n\n\n";
 	cout << "        " << "When does the school year start?  ";
@@ -1399,8 +1392,16 @@ void createYear(Year *&pcurYear){
 	cout << "\n\n        " << "You created successfully!";
 	cout << "\n        " << "PRESS ENTER TO GO BACK...";
 	
+	fstream FILE;
+	FILE.open(to_string(pcurYear->start) + "Sem1.csv",ios::out);
+	FILE.close();
+	FILE.open(to_string(pcurYear->start) + "Sem2.csv",ios::out);
+	FILE.close();
+	FILE.open(to_string(pcurYear->start) + "Sem3.csv",ios::out);
+	FILE.close();
+	
 	FILE.open ("Year.txt",ios::out);
-	FILE << pcurYear->start << " " << pcurYear->end;
+	FILE << pcurYear->start << " " << pcurYear->end << " " << isRegister;
 	FILE.close();
 	
 	getch();
@@ -1576,18 +1577,21 @@ void importData(Year *&pcurYear){
 	fstream FILE;
 	FILE.open("Year.txt",ios::in);
 	int start_year, end_year;
-	FILE >> start_year >> end_year >> isRegister;
+	while (!FILE.eof())
+		FILE >> start_year >> end_year >> isRegister;
 	FILE.close();
+	
 	if (start_year && end_year){
 		pcurYear = new Year;
 		pcurYear->start = start_year;
 		pcurYear->end = end_year;
 		
-		pcurYear->pHeadClass = NULL; // import class
+		pcurYear->pHeadClass = NULL;
+		ImportOldStu (to_string(pcurYear->start) + ".csv", pcurYear->pHeadClass);
 
-		importCourse("Sem1.csv", pcurYear, 1);
-		importCourse("Sem2.csv", pcurYear, 2);
-		importCourse("Sem3.csv", pcurYear, 3);
+		importCourse(to_string(pcurYear->start) + "Sem1.csv", pcurYear, 1);
+		importCourse(to_string(pcurYear->start) + "Sem2.csv", pcurYear, 2);
+		importCourse(to_string(pcurYear->start) + "Sem3.csv", pcurYear, 3);
 		if (pcurYear->Sem1.pHeadCou != NULL)
 			orderSem = 1;
 		if (pcurYear->Sem2.pHeadCou != NULL)
