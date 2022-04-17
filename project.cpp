@@ -1083,6 +1083,7 @@ void RegisterCou(Year *pcurYear, int orderSem, Course *pHead, Student *curStu){
 // dùng khi khởi động lại chương trình, khi kết thúc đăng ký học phần
 // khi kết thúc đăng ký học phần cần kèm thêm điều kiện đã kết thúc học phần
 void UpdateData (Year *pCurYear, int semester, bool yearCreated){
+    void UpdateData (Year *pCurYear, int semester, bool yearCreated){
     if (yearCreated == false)
         return;
     Course *pHeadCou;
@@ -1110,32 +1111,52 @@ void UpdateData (Year *pCurYear, int semester, bool yearCreated){
     Student *pCurStu;
     // k dùng để dò xem course đã cập nhật được bao nhiêu học sinh rồi
     int k;
+    pCurCou = pHeadCou;
     int length = strlen (pCurCou -> IDCou.c_str());
+    Score *curScore;
     // length là độ dài được quy định của tên course
     // vòng lặp được chạy qua từng học sinh và dò course mà các học sinh đó đã
     // đăng ký, nếu tên course đăng ký trùng với tên course có sẵn thì pointer
     // của học sinh sẽ được cập nhật trong course
     while (pCurClass != nullptr){
+        pCurStu = pCurClass -> pHeadStu;
         for (int j = 0; j < pCurClass -> numberOfStu; j++){
-            pCurStu = pCurClass -> pHeadStu;
             int maxCou = strlen (pCurStu -> course.c_str()) / length;
-            pCurStu -> Inclass = new Score [maxCou];
             for (int i = 0; i < maxCou; i++){
                 pCurCou = pHeadCou;
-                while (pCurCou == nullptr || pCurCou -> IDCou != pCurStu -> course.substr(i*length, length))
+                while (pCurCou != nullptr && pCurCou -> IDCou != pCurStu -> course.substr(i*length, length)){
                     pCurCou = pCurCou -> pNext;
+                }
                 if (pCurCou == nullptr)
                     continue;
+
+                // tạo score
+                if (i==0) {
+                    curScore = new Score;
+                    pCurStu -> Inclass = curScore;
+                }
+                else{
+                    curScore -> pNext = new Score;
+                    curScore = curScore -> pNext;
+                    curScore -> pNext = nullptr;
+                }
+                
+                curScore -> CouName = pCurCou -> nameCou;
+                curScore -> CouID = pCurCou -> IDCou;
+                
+                // chạy tới cuối danh sách học sinh trong score
                 k = 0;
                 while (pCurCou -> Stu[k] != '\0')
                     k++;
                 pCurCou -> Stu[k] = pCurStu;
             }
+            curScore = nullptr;
             pCurStu = pCurStu -> pNext;  
         }
         pCurClass = pCurClass -> pNext;
     }             
-}
+}             
+
 
 
 void Runtest(Year *pcurYear, int orderSem, Student *curStu){
