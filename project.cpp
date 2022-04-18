@@ -15,10 +15,14 @@ struct NodePass{
 };
 
 struct Score {
+    string CouName;
+    string CouID;
     float Mid;
     float Final;
     float Other;
     float GPA;
+    Score *pNext;
+
 };
 
 struct Student{
@@ -78,7 +82,9 @@ void RegisterCou(Year *pcurYear, int sem, Course *pHead, Student *curStu);
 bool CheckScheduleCou (Student *curStu, Course *curEnroll, Course *pHead);
 void Runtest (Year *pcurYear, int sem, Student *curStu);
 void UpdateData (Year *pCurYear, int semester, bool yearCreated);
-
+// Hàm export data dùng để lưu lại các data hiện có khi thoát chương trình
+// Hàm cần truyền vào biến bool Course Register kết thúc chưa
+void ExportData (Year *curYear, int ordersem, bool couRegistEnd);
 void createSemester(Year *&pCurYear, int &orderSem);
 
 Class* CreateClass(Class*& phead, string tmp, Year*& curyear);
@@ -1113,7 +1119,7 @@ void UpdateData (Year *pCurYear, int semester, bool yearCreated){
                 curScore -> CouName = pCurCou -> nameCou;
                 curScore -> CouID = pCurCou -> IDCou;
 
-                // chạy tới cuối danh sách học sinh trong score
+                // chạy tới cuối danh sách học sinh trong course
                 k = 0;
                 while (pCurCou -> Stu[k] != '\0')
                     k++;
@@ -1125,6 +1131,85 @@ void UpdateData (Year *pCurYear, int semester, bool yearCreated){
         pCurClass = pCurClass -> pNext;
     }     
 }             
+
+void ExportData (Year *curYear, int ordersem, bool couRegistEnd){
+    Year *head = curYear;
+    Course *pHeadCou;
+    switch (semester){
+		case 1:{
+			pHeadCou = pCurYear->Sem1.pHeadCou;
+			break;
+		}
+		case 2:{
+			pHeadCou = pCurYear->Sem2.pHeadCou;
+			break;
+		}
+		case 3:{
+			pHeadCou = pCurYear->Sem3.pHeadCou;
+            break;
+		}
+	}      
+    course *pcurCou = pHeadCou;
+    int count = 0;
+    while (pcurCou != nullptr){
+        pcurCou = pcurCou -> pNext;
+        count ++;
+    }
+    pcurCou = pHeadCou;
+    Class *pHeadClass = curYear -> pHeadClass;
+    Class *pcurClass = pHeadClass;
+    ofstream ofile ("data.csv");
+    // Xuất danh số lượng course trước rồi mới xuất danh sách các course
+    ofile << count;
+    while (pcurCou != nullptr){
+        ofile << pcurCou -> IDCou << ",";
+        ofile << pcurCou -> nameCou << ",";
+        ofile << pcurCou -> credits << ",";
+        ofile << pcurCou -> day1 << ",";
+        ofile << pcurCou -> session1 << ",";
+        ofile << pcurCou -> day2 << ",";
+        ofile << pcurCou -> session2 << ",";
+        ofile << pcurCou -> teacher << ",";
+        ofile << pcurCou -> enrolling << ",";
+        ofile << pcurCou -> maxStu << endl;
+        pcurCou = pcurCou -> pNext;
+    } 
+    int length = strlen (pHeadCou -> nameCou.c_str());
+    Student *pcurStu;
+    Score *pcurScore;
+    // Xuất tên class và số lượng học sinh trong class trước
+    // Trong mỗi class sẽ xuất các thông tin cụ thể của mỗi học sinh
+    // Các thông tin đó gồm STT, MSSV, Tên, Họ, Giới Tính, Ngày Sinh, CMND,
+    // Course và Score nếu có
+    while (pcurClass != nullptr){
+        ofile << pcurClass -> className << "," << pcurClass -> numberOfStu << endl;
+        pcurStu = pcurClass -> pHeadStu;
+        for (int i = 0; i < pcurClass -> numberOfStu; i++){
+            ofile << pcurStu -> No << ",";
+            ofile << pcurStu -> IDStu << ",";
+            ofile << pcurStu -> firstname << ",";
+            ofile << pcurStu -> lastname << ",";
+            ofile << pcurStu -> gender << ",";
+            ofile << pcurStu -> date << ",";
+            ofile << pcurStu -> IDSocial << endl;
+            if (couRegistEnd == true){
+                ofile << pcurStu -> course << ",";
+                pcurScore = pcurStu -> Inclass;
+                for (int i = 0; i < strlen(pcurStu -> course.c_str())/length; i++){
+                    ofile << pcurScore -> CouID << ",";
+                    ofile << pcurScore -> Mid << ",";
+                    ofile << pcurScore -> Final << ",";
+                    ofile << pcurScore -> Other << ",";
+                    if (i != strlen(pcurStu -> course.c_str())/length - 1)
+                        ofile << pcurScore -> GPA << ",";     
+                    else 
+                        ofile << pcurScore -> GPA << endl;
+                }
+            }
+        }
+    } 
+    ofile.close();
+}
 
 void Runtest(Year *pcurYear, int orderSem, Student *curStu){
     Course *pHeadCou;
