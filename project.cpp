@@ -43,7 +43,7 @@ struct Course{
 	int maxStu, enrolling;
 	string day1, day2;
 	string session1, session2; //bu?i h?c
-	Student* Stu;
+	Student** Stu;
 	Course* pNext;
 };
 
@@ -168,36 +168,27 @@ void importCourse (string filename, Year *&pcurYear, int orderSem){
         pNewCou -> enrolling = stoi (tmp);
         tmp = "";
         
-        pNewCou -> Stu = NULL;
-        Student *pCurInclasstu = pNewCou -> Stu;
-        
+        pNewCou->Stu = new Student *[pNewCou->enrolling];
         for ( int i = 0; i < pNewCou->enrolling; i++){
-        	Student *pNewStu = new Student;
         	getline (FILE, tmp, ',');
-            pNewStu -> No = stoi (tmp); 
+        	pNewCou -> Stu[i] = new Student;
+            pNewCou -> Stu[i] -> No = stoi (tmp); 
             tmp = "";
             getline (FILE, tmp, ',');
-            pNewStu -> IDStu = tmp;
+            pNewCou -> Stu[i] -> IDStu = tmp;
             getline (FILE, tmp,',');
-            pNewStu -> firstname = tmp.erase(0,1);
+            pNewCou -> Stu[i] -> firstname = tmp.erase(0,1);
             getline (FILE, tmp,',');
-            pNewStu -> lastname = tmp.erase(0,1);
+            pNewCou -> Stu[i] -> lastname = tmp.erase(0,1);
             getline (FILE, tmp,',');
-            pNewStu -> gender = tmp.erase(0,1);
+            pNewCou -> Stu[i] -> gender = tmp.erase(0,1);
             getline (FILE, tmp,',');
-            pNewStu -> date = tmp.erase(0,1);
+            pNewCou -> Stu[i] -> date = tmp.erase(0,1);
             getline (FILE, tmp,'\n');
-            pNewStu -> IDSocial = stoi (tmp);
-            tmp = "";
-     		if (pNewCou -> Stu == NULL)
-			pNewCou -> Stu =  pNewStu;
-			if (pCurInclasstu != NULL)
-				pCurInclasstu->pNext =  pNewStu;
-			pCurInclasstu =  pNewStu;	
+            pNewCou -> Stu[i] -> IDSocial = stoi (tmp);
+            tmp = "";	
 		}
-        if (pCurInclasstu != NULL)
-			pCurInclasstu->pNext = NULL;
-        
+
 		if (pHeadCou == NULL)
 			pHeadCou = pNewCou;
 		if (pCurCou != NULL)
@@ -255,19 +246,17 @@ void listStuOfCou (Year *&pcurYear, int &orderSem, int orderCou, bool print){
 		pCurCou = pCurCou->pNext; 
 	}
 	
-	Student *pCurStu = pCurCou->Stu;
-	for ( int i = 1; i <= pCurCou->enrolling; i++){
-		gotoxy(xp,5+i);
-		cout << pCurStu->No;
-		gotoxy(xp + 5,5+i);
-		cout << pCurStu->IDStu;
-		gotoxy(xp + 17,5+i);
-		cout << pCurStu->firstname << " " << pCurStu->lastname;
-		gotoxy(xp + 40,5+i);
-		cout << pCurStu->date;
-		gotoxy(xp + 55 ,5+i);
-		cout << pCurStu->IDSocial;
-		pCurStu = pCurStu->pNext;		
+	for ( int i = 0; i < pCurCou->enrolling; i++){
+		gotoxy(xp,6+i);
+		cout << pCurCou->Stu[i]->No;
+		gotoxy(xp + 5,6+i);
+		cout << pCurCou->Stu[i]->IDStu;
+		gotoxy(xp + 17,6+i);
+		cout << pCurCou->Stu[i]->firstname << " " << pCurCou->Stu[i]->lastname;
+		gotoxy(xp + 40,6+i);
+		cout << pCurCou->Stu[i]->date;
+		gotoxy(xp + 55,6+i);
+		cout << pCurCou->Stu[i]->IDSocial;		
 	}
 	
 	if (print){
@@ -284,15 +273,13 @@ void listStuOfCou (Year *&pcurYear, int &orderSem, int orderCou, bool print){
 		FILE << pCurCou->teacher << ",";
 		FILE << pCurCou->maxStu << ",";
 		FILE << pCurCou->enrolling;
-		pCurStu = pCurCou->Stu;
-		for ( int i = 1; i <= pCurCou->enrolling; i++){
-			FILE << "\n" << pCurStu->No << ",";
-			FILE << pCurStu->IDStu << ",";
-			FILE << pCurStu->firstname << ",";
-			FILE << pCurStu->lastname << ",";
-			FILE << pCurStu->date << ",";
-			FILE << pCurStu->IDSocial;
-			pCurStu = pCurStu->pNext;		
+		for ( int i = 0; i < pCurCou->enrolling; i++){
+			FILE << "\n" << pCurCou->Stu[i]->No << ",";
+			FILE << pCurCou->Stu[i]->IDStu << ",";
+			FILE << pCurCou->Stu[i]->firstname << ",";
+			FILE << pCurCou->Stu[i]->lastname << ",";
+			FILE << pCurCou->Stu[i]->date << ",";
+			FILE << pCurCou->Stu[i]->IDSocial;	
 	}
 		FILE.close();	
 		gotoxy(xp, 5 + soluong + 12 );
@@ -401,15 +388,15 @@ void staffSee(Year *&pcurYear, int orderSem){
 			while ( true){
 				switch (orderSem){
 					case 1:{
-						importCourse ("Sem1.csv", pcurYear, orderSem);
+						importCourse (to_string(pcurYear->start) + "Sem1.csv", pcurYear, orderSem);
 						break;
 					}
 					case 2:{
-						importCourse ("Sem2.csv", pcurYear, orderSem);
+						importCourse (to_string(pcurYear->start) + "Sem2.csv", pcurYear, orderSem);
 						break;
 					}
 					case 3:{
-						importCourse ("Sem3.csv", pcurYear, orderSem);
+						importCourse (to_string(pcurYear->start) + "Sem3.csv", pcurYear, orderSem);
 					}
 				}
 				listCourse(pcurYear,orderSem,soluong);
@@ -532,21 +519,6 @@ void createCourseCSV(Year *&pCurYear, int orderSem){
 			pCurYear->Sem3.pHeadCou = pHeadCou;
 		}
 	}
-	
-//	pCurCou = pCurYear->Sem1.pHeadCou;
-//	while (pCurCou != NULL){
-//		cout << endl << pCurCou->IDCou << endl;
-//		cout << pCurCou->nameCou << endl;
-//		cout << pCurCou->credits << endl;
-//		cout << pCurCou->day1 << endl;
-//		cout << pCurCou->session1 << endl;
-//		cout << pCurCou->day2 << endl;
-//		cout << pCurCou->session2 << endl;
-//		cout << pCurCou->teacher << endl;
-//		cout << pCurCou->maxStu << endl;
-//		pCurCou = pCurCou->pNext;
-//	}	
-
 	FILE.close();
 }
 
@@ -786,17 +758,17 @@ void exportCourse(Year *pCurYear, int orderSem){
 	switch (orderSem){
 		case 1:{
 			pHeadCou = pCurYear->Sem1.pHeadCou;
-			FILE.open("Sem1.csv",ios::out);
+			FILE.open(to_string(pCurYear->start) + "Sem1.csv",ios::out);
 			break;
 		}
 		case 2:{
 			pHeadCou = pCurYear->Sem2.pHeadCou;
-			FILE.open("Sem2.csv",ios::out);
+			FILE.open(to_string(pCurYear->start) + "Sem2.csv",ios::out);
 			break;
 		}
 		case 3:{
 			pHeadCou = pCurYear->Sem3.pHeadCou;
-			FILE.open("Sem3.csv",ios::out);
+			FILE.open(to_string(pCurYear->start) + "Sem3.csv",ios::out);
 		}
 	}
 		
@@ -813,15 +785,13 @@ void exportCourse(Year *pCurYear, int orderSem){
 		FILE << pCurCou->maxStu  << ",";
 		FILE << pCurCou->enrolling << "\n";
 		
-		Student *pCurStu = pCurCou->Stu;
 		for ( int i = 1; i <= pCurCou->enrolling; i++){
-			FILE << pCurStu->No << "," ;
-			FILE << pCurStu->IDStu << "," ;
-			FILE << pCurStu->firstname << "," ;
-			FILE << pCurStu->lastname << "," ;
-			FILE << pCurStu->date << "," ;
-			FILE << pCurStu->IDSocial << "\n" ;
-			pCurStu = pCurStu->pNext;		
+			FILE << pCurCou->Stu[i]->No << "," ;
+			FILE << pCurCou->Stu[i]->IDStu << "," ;
+			FILE << pCurCou->Stu[i]->firstname << "," ;
+			FILE << pCurCou->Stu[i]->lastname << "," ;
+			FILE << pCurCou->Stu[i]->date << "," ;
+			FILE << pCurCou->Stu[i]->IDSocial << "\n" ;		
 		}
 		pCurCou = pCurCou->pNext;
 	}		
@@ -1083,7 +1053,6 @@ void RegisterCou(Year *pcurYear, int orderSem, Course *pHead, Student *curStu){
 // dùng khi khởi động lại chương trình, khi kết thúc đăng ký học phần
 // khi kết thúc đăng ký học phần cần kèm thêm điều kiện đã kết thúc học phần
 void UpdateData (Year *pCurYear, int semester, bool yearCreated){
-    void UpdateData (Year *pCurYear, int semester, bool yearCreated){
     if (yearCreated == false)
         return;
     Course *pHeadCou;
@@ -1140,10 +1109,10 @@ void UpdateData (Year *pCurYear, int semester, bool yearCreated){
                     curScore = curScore -> pNext;
                     curScore -> pNext = nullptr;
                 }
-                
+
                 curScore -> CouName = pCurCou -> nameCou;
                 curScore -> CouID = pCurCou -> IDCou;
-                
+
                 // chạy tới cuối danh sách học sinh trong score
                 k = 0;
                 while (pCurCou -> Stu[k] != '\0')
@@ -1154,10 +1123,8 @@ void UpdateData (Year *pCurYear, int semester, bool yearCreated){
             pCurStu = pCurStu -> pNext;  
         }
         pCurClass = pCurClass -> pNext;
-    }             
+    }     
 }             
-
-
 
 void Runtest(Year *pcurYear, int orderSem, Student *curStu){
     Course *pHeadCou;
@@ -1287,13 +1254,7 @@ void ImportOldStu(string filename, Class*& cHead) {
     if (tmp == "\0") {
         return;
     }
-    Class *curClass;
-    if (cHead != nullptr) {
-        curClass = cHead;
-        while (curClass -> pNext != nullptr)
-            curClass = curClass -> pNext;
-    }
-    else curClass = new Class;
+    Class *curClass = new Class;
     while (!ifile.eof()) {
         if (tmp != "\0") {
             if ( cHead != nullptr) {
@@ -1306,8 +1267,8 @@ void ImportOldStu(string filename, Class*& cHead) {
             getline(ifile, tmp, '\n');
             curClass->numberOfStu = stoi(tmp.c_str());
             getline (ifile, tmp, ',');
+            Student* pcur = new Student;
             for (int i = curClass->numberOfStu; i > 0; i--) {
-                Student* pcur = new Student;
                 if (i != curClass->numberOfStu) {
                     pcur->pNext = new Student;
                     pcur = pcur->pNext;
@@ -1315,7 +1276,7 @@ void ImportOldStu(string filename, Class*& cHead) {
                 else curClass->pHeadStu = pcur;
                 pcur->No = stoi(tmp.c_str());
                 getline(ifile, tmp, ',');
-                pcur->IDStu = stoi(tmp.c_str());
+                pcur->IDStu = tmp.erase(0, 1);
                 getline(ifile, tmp, ',');
                 pcur->firstname = tmp.erase(0, 1);
                 getline(ifile, tmp, ',');
@@ -1326,22 +1287,15 @@ void ImportOldStu(string filename, Class*& cHead) {
                 pcur->date = tmp.erase(0, 1);         
                 getline(ifile, tmp, '\n');
                 pcur->IDSocial = stoi(tmp.c_str());
-                pcur->pNext = nullptr;
                 getline(ifile, tmp, ',');
             }
+            pcur->pNext = nullptr;  
         }
         else break;
     }
+    curClass->pNext = NULL;
     ifile.close();
 }
-
-//Chỉ cần gọi hàm này để nhập dữ liệu từ các file data
-void ImportOldData (Year *&curYear){
-    string tmp = "datayear";
-    for (int i = 4; i > 1; i--)
-        ImportOldStu (tmp + to_string(i) + ".csv", curYear -> pHeadClass);
-}
-
 
 void ImportClasses (Class *&pheadClass, Year *&pcurYear){
 	system("cls");
@@ -1372,6 +1326,25 @@ void ImportClasses (Class *&pheadClass, Year *&pcurYear){
         Class *pcurClass = CreateClass (pheadClass, classname, pcurYear);
         ImportNewStu(filename, pcurClass);
     } 
+    fstream FILE;
+    FILE.open (to_string(pcurYear->start) + ".csv", ios::out | ios::app);
+    Class *pcurClass = pheadClass;
+    while (pcurClass){
+    	FILE << pcurClass->className << ", " << pcurClass->numberOfStu << endl;
+    	Student *pcurStu = pcurClass->pHeadStu;
+    	while (pcurStu){
+    		FILE << pcurStu->No << ",";
+    		FILE << pcurStu->IDStu << ", ";
+    		FILE << pcurStu->firstname << ", ";
+    		FILE << pcurStu->lastname << ", ";
+    		FILE << pcurStu->gender << ", ";
+    		FILE << pcurStu->date << ", ";
+    		FILE << pcurStu->IDSocial << "\n";
+    		pcurStu = pcurStu->pNext;
+		}
+		pcurClass = pcurClass->pNext;
+	}
+    FILE.close();
 }
 
 void OutPutStu (Class *pheadClass){
@@ -1609,7 +1582,7 @@ void importData(Year *&pcurYear){
 		
 		pcurYear->pHeadClass = NULL;
 		ImportOldStu (to_string(pcurYear->start) + ".csv", pcurYear->pHeadClass);
-
+		
 		importCourse(to_string(pcurYear->start) + "Sem1.csv", pcurYear, 1);
 		importCourse(to_string(pcurYear->start) + "Sem2.csv", pcurYear, 2);
 		importCourse(to_string(pcurYear->start) + "Sem3.csv", pcurYear, 3);
