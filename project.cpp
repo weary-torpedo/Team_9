@@ -19,6 +19,7 @@ struct Score {
     string CouID;
     float Mid;
     float Final;
+	float Total;
     float Other;
     float GPA;
     Score *pNext;
@@ -267,27 +268,37 @@ void listStuOfCou (Year *&pcurYear, int &orderSem, int orderCou, bool print){
 	
 	if (print){
 		string tmp = pCurCou->IDCou + ".csv";
-		fstream FILE;
-		FILE.open(tmp, ios::out);	
-		FILE << pCurCou->IDCou << ",";
-		FILE << pCurCou->nameCou << ",";
-		FILE << pCurCou->credits << ",";
-		FILE << pCurCou->day1 << ",";
-		FILE << pCurCou->session1 << ",";
-		FILE << pCurCou->day2 << ",";
-		FILE << pCurCou->session2 << ",";
-		FILE << pCurCou->teacher << ",";
-		FILE << pCurCou->maxStu << ",";
-		FILE << pCurCou->enrolling;
+		ofstream fout;
+		fout.open(tmp);	
+		fout << "BANG DIEM MON " << pCurCou->nameCou << endl;
+		fout << "NO,ID,NAME,MIDTERM MARK,FINAL MARK,TOTAL MARK,OTHER MARK" << endl;
 		for ( int i = 0; i < pCurCou->enrolling; i++){
-			FILE << "\n" << pCurCou->Stu[i]->No << ",";
-			FILE << pCurCou->Stu[i]->IDStu << ",";
-			FILE << pCurCou->Stu[i]->firstname << ",";
-			FILE << pCurCou->Stu[i]->lastname << ",";
-			FILE << pCurCou->Stu[i]->date << ",";
-			FILE << pCurCou->Stu[i]->IDSocial;	
-	}
-		FILE.close();	
+			Score* pCur = pCurCou->Stu[i]->Inclass;
+			while(pCur->CouID != pCurCou->IDCou)
+				pCur = pCur->pNext;
+			fout << i + 1 << ",";
+			fout << pCurCou->Stu[i]->IDStu << ",";
+			fout << pCurCou->Stu[i]->lastname << " ";
+			fout << pCurCou->Stu[i]->firstname << ",";
+			if(pCur->Mid != -1)
+				fout << pCur->Mid << ",";
+			else 
+				fout << "-" << ",";
+			if(pCur->Final != -1)
+				fout << pCur->Final << ",";
+			else 
+				fout << "-" << ",";
+			if(pCur->Total != -1)
+				fout << pCur->Total << ",";
+			else 
+				fout << "-" << ",";
+			if(pCur->Other != -1)
+				fout << pCur->Other << ",";
+			else 
+				fout << "-" << ",";
+			fout << endl;
+		}
+		fout.close();
 		gotoxy(xp, 5 + soluong + 12 );
 		cout << "You printed successfully!";
 		gotoxy(xp, 5 + soluong + 13 );
