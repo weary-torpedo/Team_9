@@ -884,16 +884,17 @@ void createCourseRegister(Year *&pcurYear, int &orderSem){
 		getch();		
 	}
 
-	int size = 35;
+	int size = 50;
 	while (true){
 		system("cls");
 		
-		printBox("Press A to create a course",xp,5,size);
-		printBox("Press C to see list of courses",xp,8,size);
-		printBox("Press O to log out",xp,11,size);	
+		printBox("Press 1 to create a course",xp,5,size);
+		printBox("Press 2 to see list of courses",xp,8,size);
+		printBox("Press 3 to active course registration session",xp,11,size);
+		printBox("Press O to log out",xp,14,size);	
 	
 		char c = getch();
-		if ( c == 'A' || c == 'a'){
+		if ( c == '1' ){
 			int TMP;
 			system("cls");
 			gotoxy(xp,5);
@@ -910,7 +911,7 @@ void createCourseRegister(Year *&pcurYear, int &orderSem){
 				createCourseCSV(pcurYear,orderSem);
 		}
 			
-		else if ( c == 'C' || c == 'c'){
+		else if ( c == '2'){
 			char c1 = '1', c2 = '1';
 			while ( c1 != 'B' && c1 != 'b' && c2 != 'B' && c2 != 'b'){
 				listCourse(pcurYear,orderSem,soluong);
@@ -943,11 +944,13 @@ void createCourseRegister(Year *&pcurYear, int &orderSem){
 				else if (c1 == 'D' || c1 == 'd')
 					deleteCourse(pcurYear,orderSem,orderCou);
 			}
-	}
-	else if ( c == 'O' || c == 'o'){
-		exportCourse(pcurYear, orderSem);
-		logOut = true;
-		return;
+		}
+		else if ( c == '3')
+			activeCourseRegister(pcurYear);
+		else if ( c == 'O' || c == 'o'){
+			exportCourse(pcurYear, orderSem);
+			logOut = true;
+			return;
 		}
 	}
 }
@@ -1146,21 +1149,21 @@ void UpdateData (Year *pCurYear, int semester, bool yearCreated){
 void ExportData (Year *curYear, int ordersem, bool couRegistEnd){
     Year *head = curYear;
     Course *pHeadCou;
-    switch (semester){
+    switch (orderSem){
 		case 1:{
-			pHeadCou = pCurYear->Sem1.pHeadCou;
+			pHeadCou = curYear->Sem1.pHeadCou;
 			break;
 		}
 		case 2:{
-			pHeadCou = pCurYear->Sem2.pHeadCou;
+			pHeadCou = curYear->Sem2.pHeadCou;
 			break;
 		}
 		case 3:{
-			pHeadCou = pCurYear->Sem3.pHeadCou;
+			pHeadCou = curYear->Sem3.pHeadCou;
             break;
 		}
 	}      
-    course *pcurCou = pHeadCou;
+    Course *pcurCou = pHeadCou;
     int count = 0;
     while (pcurCou != nullptr){
         pcurCou = pcurCou -> pNext;
@@ -1506,9 +1509,8 @@ void staffCreate(Year *&pcurYear, int &orderSem){
 		printBox("Press 2 to create a class",xp,8,50);
 		printBox("Press 3 to create a semester",xp,11,50);
 		printBox("Press 4 to create a course registration session",xp,14,50);
-		printBox("Press 5 to active course registration session",xp,17,50);
-		printBox("Press O to log out",xp,20,50);
-		printBox("Press Enter to do other operations",xp,23,50);
+		printBox("Press O to log out",xp,17,50);
+		printBox("Press Enter to do other operations",xp,20,50);
 		
 		char c = getch();
 		if (c == 'o' || c == 'O'){
@@ -1522,9 +1524,7 @@ void staffCreate(Year *&pcurYear, int &orderSem){
 	else if ( c == '3')
 			createSemester(pcurYear,orderSem);
 	else if ( c == '4')
-			createCourseRegister(pcurYear, orderSem);
-	else if ( c == '5')
-			isRegister = activeCourseRegister(pcurYear);	
+			createCourseRegister(pcurYear, orderSem);	
 	else if ( c == 13)
 			return;
 	}
