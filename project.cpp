@@ -17,6 +17,7 @@ struct NodePass{
 struct Score {
     string CouName;
     string CouID;
+    int semester;
     float Mid;
     float Final;
 	float Total;
@@ -75,7 +76,7 @@ void createCourseCSV(Year *&pCurYear, int orderSem);
 void createCourse(Year *&pCurYear, int orderSem);
 void editCourse(Year *&pCurYear, int orderSem, int orderCou);
 void deleteCourse(Year *&pCurYear, int orderSem, int orderCou);
-void exportCourse(Year *pCurYear, int orderSem);
+void exportCourse(Year *pCurYear, int orderSem, bool semEnd);
 void listCourse(Year *pCurYear, int orderSem, int &soluong);
 void createCourseRegister(Year *&pCurYear, int &orderSem);
 void PrintCourse (Year *pCurYear, int semester);
@@ -173,29 +174,7 @@ void importCourse (string filename, Year *&pcurYear, int orderSem){
         tmp = "";
         getline(FILE,tmp, '\n');
         pNewCou -> enrolling = stoi (tmp);
-        tmp = "";
-        
-        pNewCou->Stu = new Student *[pNewCou->enrolling];
-        for ( int i = 0; i < pNewCou->enrolling; i++){
-        	getline (FILE, tmp, ',');
-        	pNewCou -> Stu[i] = new Student;
-            pNewCou -> Stu[i] -> No = stoi (tmp); 
-            tmp = "";
-            getline (FILE, tmp, ',');
-            pNewCou -> Stu[i] -> IDStu = tmp;
-            getline (FILE, tmp,',');
-            pNewCou -> Stu[i] -> firstname = tmp.erase(0,1);
-            getline (FILE, tmp,',');
-            pNewCou -> Stu[i] -> lastname = tmp.erase(0,1);
-            getline (FILE, tmp,',');
-            pNewCou -> Stu[i] -> gender = tmp.erase(0,1);
-            getline (FILE, tmp,',');
-            pNewCou -> Stu[i] -> date = tmp.erase(0,1);
-            getline (FILE, tmp,'\n');
-            pNewCou -> Stu[i] -> IDSocial = stoi (tmp);
-            tmp = "";	
-		}
-
+        tmp = ""; 
 		if (pHeadCou == NULL)
 			pHeadCou = pNewCou;
 		if (pCurCou != NULL)
@@ -768,7 +747,7 @@ void deleteCourse(Year *&pCurYear, int orderSem, int orderCou){
 	getch();
 }
 
-void exportCourse(Year *pCurYear, int orderSem){
+void exportCourse(Year *pCurYear, int orderSem, bool semEnd){
 	fstream FILE;
 	
 	Course *pHeadCou;
@@ -802,14 +781,24 @@ void exportCourse(Year *pCurYear, int orderSem){
 		FILE << pCurCou->maxStu  << ",";
 		FILE << pCurCou->enrolling << "\n";
 		
-		for ( int i = 1; i <= pCurCou->enrolling; i++){
-			FILE << pCurCou->Stu[i]->No << "," ;
-			FILE << pCurCou->Stu[i]->IDStu << "," ;
-			FILE << pCurCou->Stu[i]->firstname << "," ;
-			FILE << pCurCou->Stu[i]->lastname << "," ;
-			FILE << pCurCou->Stu[i]->date << "," ;
-			FILE << pCurCou->Stu[i]->IDSocial << "\n" ;		
-		}
+        if (semEnd == true){
+            for ( int i = 1; i <= pCurCou->enrolling; i++){
+                FILE << i << "," ;
+                FILE << pCurCou->Stu[i]->IDStu << "," ;
+                FILE << pCurCou->Stu[i]->firstname << "," ;
+                FILE << pCurCou->Stu[i]->lastname << "," ;
+                FILE << pCurCou->Stu[i]->date << "," ;
+                FILE << pCurCou->Stu[i]->IDSocial << "\n" ;		
+                Score *pcurScore = pCurCou -> Stu[i] -> Inclass;
+                while (strcmp(pcurScore -> CouID.c_str(), pCurCou -> IDCou) != 0)
+                    pcurScore = pcurScore -> pNext;
+                FILE << pcurScore -> Mid << ",";
+                FILE << pcurScore -> Final << ",";
+                FILE << pcurScore -> Other << ",";
+                FILE << pcurScore -> Total << ",";
+                FILE << pcurScore -> GPA << endl;
+            }
+        }
 		pCurCou = pCurCou->pNext;
 	}		
 	FILE.close();
@@ -1129,11 +1118,17 @@ void UpdateData (Year *pCurYear, int semester, bool yearCreated){
                     curScore = curScore -> pNext;
                     curScore -> pNext = nullptr;
                 }
-
+                
                 curScore -> CouName = pCurCou -> nameCou;
                 curScore -> CouID = pCurCou -> IDCou;
-
-                // chạy tới cuối danh sách học sinh trong course
+                curScore -> GPA = -1;
+                curScore -> Final = -1;
+                curScore -> Mid = -1;
+                curScore -> Other = -1;
+                curScore -> Total = -1;
+                curScore -> semester = semester;
+                
+                // chạy tới cuối danh sách học sinh trong courses
                 k = 0;
                 while (pCurCou -> Stu[k] != '\0')
                     k++;
@@ -1143,52 +1138,15 @@ void UpdateData (Year *pCurYear, int semester, bool yearCreated){
             pCurStu = pCurStu -> pNext;  
         }
         pCurClass = pCurClass -> pNext;
-    }     
+    }             
 }             
 
-void ExportData (Year *curYear, int ordersem, bool couRegistEnd){
-    Year *head = curYear;
-    Course *pHeadCou;
-    switch (orderSem){
-		case 1:{
-			pHeadCou = curYear->Sem1.pHeadCou;
-			break;
-		}
-		case 2:{
-			pHeadCou = curYear->Sem2.pHeadCou;
-			break;
-		}
-		case 3:{
-			pHeadCou = curYear->Sem3.pHeadCou;
-            break;
-		}
-	}      
-    Course *pcurCou = pHeadCou;
-    int count = 0;
-    while (pcurCou != nullptr){
-        pcurCou = pcurCou -> pNext;
-        count ++;
-    }
-    pcurCou = pHeadCou;
+void ExportData (Year *curYear, int semester, bool couRegistEnd){      
+    string filename = to_string(pcurYear->start) + ".csv";
     Class *pHeadClass = curYear -> pHeadClass;
     Class *pcurClass = pHeadClass;
-    ofstream ofile ("data.csv");
-    // Xuất danh số lượng course trước rồi mới xuất danh sách các course
-    ofile << count;
-    while (pcurCou != nullptr){
-        ofile << pcurCou -> IDCou << ",";
-        ofile << pcurCou -> nameCou << ",";
-        ofile << pcurCou -> credits << ",";
-        ofile << pcurCou -> day1 << ",";
-        ofile << pcurCou -> session1 << ",";
-        ofile << pcurCou -> day2 << ",";
-        ofile << pcurCou -> session2 << ",";
-        ofile << pcurCou -> teacher << ",";
-        ofile << pcurCou -> enrolling << ",";
-        ofile << pcurCou -> maxStu << endl;
-        pcurCou = pcurCou -> pNext;
-    } 
-    int length = strlen (pHeadCou -> nameCou.c_str());
+    ofstream ofile (filename.c_str());
+    int length = strlen (pHeadCou -> IDCou.c_str());
     Student *pcurStu;
     Score *pcurScore;
     // Xuất tên class và số lượng học sinh trong class trước
@@ -1205,22 +1163,27 @@ void ExportData (Year *curYear, int ordersem, bool couRegistEnd){
             ofile << pcurStu -> lastname << ",";
             ofile << pcurStu -> gender << ",";
             ofile << pcurStu -> date << ",";
-            ofile << pcurStu -> IDSocial << endl;
+            ofile << pcurStu -> IDSocial << ",";
+            ofile << pcurStu -> course << endl;
             if (couRegistEnd == true){
-                ofile << pcurStu -> course << ",";
                 pcurScore = pcurStu -> Inclass;
                 for (int i = 0; i < strlen(pcurStu -> course.c_str())/length; i++){
+                    ofile << pcurScore -> semester << ",";
                     ofile << pcurScore -> CouID << ",";
                     ofile << pcurScore -> Mid << ",";
                     ofile << pcurScore -> Final << ",";
+                    ofile << pcurScore -> Total << ",";
                     ofile << pcurScore -> Other << ",";
                     if (i != strlen(pcurStu -> course.c_str())/length - 1)
                         ofile << pcurScore -> GPA << ",";     
                     else 
                         ofile << pcurScore -> GPA << endl;
+                    pcurScore = pcurScore -> pNext;
                 }
             }
+            pcurStu = pcurStu -> pNext;
         }
+        pcurClass = pcurClass -> pNext;
     } 
     ofile.close();
 }
