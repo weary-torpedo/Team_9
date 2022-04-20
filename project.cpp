@@ -133,8 +133,8 @@ int main(){
 				staffCreate(pcurYear, orderSem);
 		if (!logOut && !('2' <= username[0] && username[0] <= '9') && time == 2)
 				staffSee(pcurYear, orderSem);
-//		if (!logOut && !('2' <= username[0] && username[0] <= '9') && time == 3)
-//				staffScore(pcurYear, orderSem);	
+		if (!logOut && !('2' <= username[0] && username[0] <= '9') && time == 3)
+				staffScore(pcurYear, orderSem);	
 		if (!logOut && ('2' <= username[0] && username[0] <= '9') && isRegister)
 				Runtest(pcurYear, orderSem, pStudent);
 
@@ -245,45 +245,45 @@ void listStuOfCou (Year *&pcurYear, int &orderSem, int orderCou, bool print){
 		cout << pCurCou->Stu[i]->IDSocial;		
 	}
 	
-	if (print){
-		string tmp = pCurCou->IDCou + ".csv";
-		ofstream fout;
-		fout.open(tmp);	
-		fout << "BANG DIEM MON " << pCurCou->nameCou << endl;
-		fout << "NO,ID,NAME,MIDTERM MARK,FINAL MARK,TOTAL MARK,OTHER MARK" << endl;
-		for ( int i = 0; i < pCurCou->enrolling; i++){
-			Score* pCur = pCurCou->Stu[i]->Inclass;
-			while(pCur->CouID != pCurCou->IDCou)
-				pCur = pCur->pNext;
-			fout << i + 1 << ",";
-			fout << pCurCou->Stu[i]->IDStu << ",";
-			fout << pCurCou->Stu[i]->lastname << " ";
-			fout << pCurCou->Stu[i]->firstname << ",";
-			if(pCur->Mid != -1)
-				fout << pCur->Mid << ",";
-			else 
-				fout << "-" << ",";
-			if(pCur->Final != -1)
-				fout << pCur->Final << ",";
-			else 
-				fout << "-" << ",";
-			if(pCur->Total != -1)
-				fout << pCur->Total << ",";
-			else 
-				fout << "-" << ",";
-			if(pCur->Other != -1)
-				fout << pCur->Other << ",";
-			else 
-				fout << "-" << ",";
-			fout << endl;
-		}
-		fout.close();
-		gotoxy(xp, 5 + soluong + 12 );
-		cout << "You printed successfully!";
-		gotoxy(xp, 5 + soluong + 13 );
-		cout << "PRESS ENTER TO GO BACK...";
-		getch();
-	}
+	// if (print){
+	// 	string tmp = pCurCou->IDCou + ".csv";
+	// 	ofstream fout;
+	// 	fout.open(tmp);	
+	// 	fout << "BANG DIEM MON " << pCurCou->nameCou << endl;
+	// 	fout << "NO,ID,NAME,MIDTERM MARK,FINAL MARK,TOTAL MARK,OTHER MARK" << endl;
+	// 	for ( int i = 0; i < pCurCou->enrolling; i++){
+	// 		Score* pCur = pCurCou->Stu[i]->Inclass;
+	// 		while(pCur->CouID != pCurCou->IDCou)
+	// 			pCur = pCur->pNext;
+	// 		fout << i + 1 << ",";
+	// 		fout << pCurCou->Stu[i]->IDStu << ",";
+	// 		fout << pCurCou->Stu[i]->lastname << " ";
+	// 		fout << pCurCou->Stu[i]->firstname << ",";
+	// 		if(pCur->Mid != -1)
+	// 			fout << pCur->Mid << ",";
+	// 		else 
+	// 			fout << "-" << ",";
+	// 		if(pCur->Final != -1)
+	// 			fout << pCur->Final << ",";
+	// 		else 
+	// 			fout << "-" << ",";
+	// 		if(pCur->Total != -1)
+	// 			fout << pCur->Total << ",";
+	// 		else 
+	// 			fout << "-" << ",";
+	// 		if(pCur->Other != -1)
+	// 			fout << pCur->Other << ",";
+	// 		else 
+	// 			fout << "-" << ",";
+	// 		fout << endl;
+	// 	}
+	// 	fout.close();
+	// 	gotoxy(xp, 5 + soluong + 12 );
+	// 	cout << "You printed successfully!";
+	// 	gotoxy(xp, 5 + soluong + 13 );
+	// 	cout << "PRESS ENTER TO GO BACK...";
+	// 	getch();
+	// }
 }
 
 void listClass(Year* pcurYear, int &soluong){
@@ -338,6 +338,110 @@ void listStuofClass(Year* pcurYear, int orderClass){
 		pCurStu = pCurStu->pNext;		
 	}
 	getch();
+}
+
+void exportCourseToTeacher(Year* pcurYear, int orderSem, int orderCou){
+	Course* pCurCou;
+	switch(orderSem){
+		case 1:
+			pCurCou = pcurYear->Sem1.pHeadCou;
+			break;
+		case 2:
+			pCurCou = pcurYear->Sem2.pHeadCou;
+			break;
+		case 3:
+			pCurCou = pcurYear->Sem3.pHeadCou;
+			break;
+		
+	}
+	for(int i = 1; i < orderCou; i++){
+		pCurCou = pCurCou->pNext;
+	}
+
+	string tmp = pCurCou->IDCou + ".csv";
+	ofstream fout;
+	fout.open(tmp);	
+	fout << "BANG DIEM MON " << pCurCou->nameCou << endl;
+	fout << "NO,ID,NAME,MIDTERM MARK,FINAL MARK,TOTAL MARK,OTHER MARK" << endl;
+	for ( int i = 0; i < pCurCou->enrolling; i++){
+		Score* pCur = pCurCou->Stu[i]->Inclass;
+		while(pCur->CouID != pCurCou->IDCou)
+			pCur = pCur->pNext;
+		fout << i + 1 << ",";
+		fout << pCurCou->Stu[i]->IDStu << ",";
+		fout << pCurCou->Stu[i]->lastname << " ";
+		fout << pCurCou->Stu[i]->firstname << ",";
+		if(pCur->Mid != -1)
+			fout << pCur->Mid << ",";
+		else 
+			fout << "-" << ",";
+		if(pCur->Final != -1)
+			fout << pCur->Final << ",";
+		else 
+			fout << "-" << ",";
+		if(pCur->Total != -1)
+			fout << pCur->Total << ",";
+		else 
+			fout << "-" << ",";
+		if(pCur->Other != -1)
+			fout << pCur->Other << ",";
+		else 
+			fout << "-" << ",";
+		fout << endl;
+	}
+	fout.close();
+	gotoxy(xp, 5 + soluong + 12 );
+	cout << "You printed successfully!";
+	gotoxy(xp, 5 + soluong + 13 );
+	cout << "PRESS ENTER TO GO BACK...";
+	getch();
+	return;
+}
+
+
+void staffScore(Year* pcurYear, int orderSem){
+	Course* pHeadCou;
+	switch(orderSem){
+		case 1:
+			pHeadCou = pcurYear->Sem1.pHeadCou;
+			break;
+		case 2:
+			pHeadCou = pcurYear->Sem2.pHeadCou;
+			break;
+		case 3:
+			pHeadCou = pcurYear->Sem3.pHeadCou;
+			break;
+		
+	}
+	while (!logOut){
+		system("cls");
+		printBox("Press e to export list students of course to update the scoreboard.",xp,5,50);
+		printBox("Press i to import the updated scoreboard of course.",xp,8,50);
+		printBox("Press O to log out",xp,11,50);
+		
+		char c = getch();
+		if (c == 'o' || c == 'O'){
+			logOut = true;
+			return;
+		}
+		else if (c == 'e' || c == 'E'){
+			system("cls");
+			Course* pCur = pHeadCou;
+			int orderCou;
+			int No = 0;
+			while(pCur != NULL){
+				No++;
+				cout << No << ") " << pCur->IDCou << ". " << pCur->nameCou << " " << pCur->teacher << endl;
+				pCur = pCur->pNext;
+			}
+			cout << "Which course do you want to export? Please enter the course's No (Ex: 1): ";
+			cin >> orderCou;
+			exportCourseToTeacher(pcurYear,orderSem,orderCou);
+		}
+		else if (c == 'i' || c == 'I'){
+			
+		}
+	}
 }
 
 void staffSee(Year *&pcurYear, int orderSem){
@@ -421,13 +525,13 @@ void staffSee(Year *&pcurYear, int orderSem){
 					break;
 				else if (c1 == 13){
 					listStuOfCou(pcurYear,orderSem,orderCou, 0);
-					gotoxy(xp, 5 + soluong + 9 );
-					cout << "Do you want to print list of students: ";
-					gotoxy(xp, 5 + soluong + 10 );
-					cout << "Y for Yes, N for No:  ";					
-					cin >> c1;
-					if ( c1 == 'Y' || c1 == 'y')
-						listStuOfCou(pcurYear,orderSem,orderCou, 1);
+					// gotoxy(xp, 5 + soluong + 9 );
+					// cout << "Do you want to print list of students: ";
+					// gotoxy(xp, 5 + soluong + 10 );
+					// cout << "Y for Yes, N for No:  ";					
+					// cin >> c1;
+					// if ( c1 == 'Y' || c1 == 'y')
+					// 	listStuOfCou(pcurYear,orderSem,orderCou, 1);
 				}	
 			}
 	}
@@ -1142,7 +1246,7 @@ void UpdateData (Year *pCurYear, int semester, bool yearCreated){
 }             
 
 void ExportData (Year *curYear, int semester, bool couRegistEnd){      
-    string filename = to_string(pcurYear->start) + ".csv";
+    string filename = to_string(curYear->start) + ".csv";
     Class *pHeadClass = curYear -> pHeadClass;
     Class *pcurClass = pHeadClass;
     ofstream ofile (filename.c_str());
