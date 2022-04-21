@@ -50,6 +50,7 @@ struct Course{
 	string day1, day2;
 	string session1, session2; //bu?i h?c
 	Student** Stu;
+    int semester;
 	Course* pNext;
 };
 
@@ -83,15 +84,21 @@ void PrintCourse (Year *pCurYear, int semester);
 void RegisterCou(Year *pcurYear, int sem, Course *pHead, Student *curStu);
 bool CheckScheduleCou (Student *curStu, Course *curEnroll, Course *pHead);
 void Runtest (Year *pcurYear, int sem, Student *curStu);
-void UpdateData (Year *pCurYear, int semester, bool yearCreated);
+//hàm update data được dùng để liên kết các dữ liệu lại
+//dùng khi mới kết thúc đăng ký học phần và mới khởi động lại chương trình
+//biến bool createdScore dùng để biết là có tạo điểm hay không, nếu là kết thúc
+//đăng ký học phần thì biến này là true còn không thì là false
+void UpdateData (Year *&pCurYear, int semester, bool yearCreated, bool createScore);
 // Hàm export data dùng để lưu lại các data hiện có khi thoát chương trình
 // Hàm cần truyền vào biến bool Course Register kết thúc chưa
-void ExportData (Year *curYear, int ordersem, bool couRegistEnd);
+void ExportData (Year *&curYear, bool couRegistEnd);
 void createSemester(Year *&pCurYear, int &orderSem);
 
 Class* CreateClass(Class*& phead, string tmp, Year*& curyear);
 void ImportNewStu (string filename,  Class *curClass);
+// hàm importOldStu import 1 file data.
 void ImportOldStu(string filename, Class*& cHead);
+// Hàm import old data import 3 file data dùng khi year mới được tạo
 void ImportOldData (Year *&curYear);
 void ImportClasses (Class *&pheadClass, Year *&pcurYear);
 void OutPutStu (Class *pheadClass);
@@ -886,7 +893,7 @@ void exportCourse(Year *pCurYear, int orderSem, bool semEnd){
 		FILE << pCurCou->enrolling << "\n";
 		
         if (semEnd == true){
-            for ( int i = 1; i <= pCurCou->enrolling; i++){
+            for (int i = 1; i <= pCurCou->enrolling; i++){
                 FILE << i << "," ;
                 FILE << pCurCou->Stu[i]->IDStu << "," ;
                 FILE << pCurCou->Stu[i]->firstname << "," ;
@@ -896,12 +903,27 @@ void exportCourse(Year *pCurYear, int orderSem, bool semEnd){
                 Score *pcurScore = pCurCou -> Stu[i] -> Inclass;
                 while (strcmp(pcurScore -> CouID.c_str(), pCurCou -> IDCou) != 0)
                     pcurScore = pcurScore -> pNext;
-                FILE << pcurScore -> Mid << ",";
-                FILE << pcurScore -> Final << ",";
-                FILE << pcurScore -> Other << ",";
-                FILE << pcurScore -> Total << ",";
-                FILE << pcurScore -> GPA << endl;
-            }
+                if(pcurScore->Mid != -1);
+                    FILE << pcurScore->Mid << ",";
+                else 
+                    FILE << "-" << ",";
+                if(pcurScore->Final != -1)
+                    FILE << pcurScore->Final << ",";
+                else 
+                    FILE << "-" << ",";
+                if(pcurScore->Total != -1)
+                    FILE << pcurScore->Total << ",";
+                else 
+                    FILE << "-" << ",";
+                if(pcurScore->Other != -1)
+                    FILE << pcurScore->Other << ",";
+                else 
+                    FILE << "-" << ",";
+                if(pcurScore->GPA != -1)
+                    FILE << pcurScore->GPA << "," << endl;
+                else 
+                    FILE << "-" << "," << endl;
+
         }
 		pCurCou = pCurCou->pNext;
 	}		
@@ -1165,7 +1187,7 @@ void RegisterCou(Year *pcurYear, int orderSem, Course *pHead, Student *curStu){
 // Hàm dùng để nhập dữ liệu và nối liên kết giữa các biến
 // dùng khi khởi động lại chương trình, khi kết thúc đăng ký học phần
 // khi kết thúc đăng ký học phần cần kèm thêm điều kiện đã kết thúc học phần
-void UpdateData (Year *pCurYear, int semester, bool yearCreated){
+void UpdateData (Year *&pCurYear, int semester, bool yearCreated, bool createScore){
     if (yearCreated == false)
         return;
     Course *pHeadCou;
@@ -1183,6 +1205,9 @@ void UpdateData (Year *pCurYear, int semester, bool yearCreated){
             break;
 		}
 	} 
+    if (pHeadCou == nullptr){
+        return;
+    }
     Course *pCurCou = pHeadCou;
     // tạo dynamic array của student trong course dựa trên số lượng enrolling
     while (pCurCou != nullptr){
@@ -1204,6 +1229,10 @@ void UpdateData (Year *pCurYear, int semester, bool yearCreated){
         pCurStu = pCurClass -> pHeadStu;
         for (int j = 0; j < pCurClass -> numberOfStu; j++){
             int maxCou = strlen (pCurStu -> course.c_str()) / length;
+            curScore = pCurStu -> Inclass;
+            if (pCurStu -> Inclass != nullptr)
+                while (curScore -> pNext != nullptr)
+                    curScore = curScore -> pNext; 
             for (int i = 0; i < maxCou; i++){
                 pCurCou = pHeadCou;
                 while (pCurCou != nullptr && pCurCou -> IDCou != pCurStu -> course.substr(i*length, length)){
@@ -1213,25 +1242,25 @@ void UpdateData (Year *pCurYear, int semester, bool yearCreated){
                     continue;
 
                 // tạo score
-                if (i==0) {
-                    curScore = new Score;
-                    pCurStu -> Inclass = curScore;
+                if (createScore == true){
+                    if (pCurStu -> Inclass == nullptr) {
+                        curScore = new Score;
+                        pCurStu -> Inclass = curScore;
+                    }
+                    else{
+                        curScore -> pNext = new Score;
+                        curScore = curScore -> pNext;
+                        curScore -> pNext = nullptr;
+                    }               
+                    curScore -> CouName = pCurCou -> nameCou;
+                    curScore -> CouID = pCurCou -> IDCou;
+                    curScore -> GPA = -1;
+                    curScore -> Final = -1;
+                    curScore -> Mid = -1;
+                    curScore -> Other = -1;
+                    curScore -> Total = -1;
+                    curScore -> semester = semester;
                 }
-                else{
-                    curScore -> pNext = new Score;
-                    curScore = curScore -> pNext;
-                    curScore -> pNext = nullptr;
-                }
-                
-                curScore -> CouName = pCurCou -> nameCou;
-                curScore -> CouID = pCurCou -> IDCou;
-                curScore -> GPA = -1;
-                curScore -> Final = -1;
-                curScore -> Mid = -1;
-                curScore -> Other = -1;
-                curScore -> Total = -1;
-                curScore -> semester = semester;
-                
                 // chạy tới cuối danh sách học sinh trong courses
                 k = 0;
                 while (pCurCou -> Stu[k] != '\0')
@@ -1245,12 +1274,40 @@ void UpdateData (Year *pCurYear, int semester, bool yearCreated){
     }             
 }             
 
-void ExportData (Year *curYear, int semester, bool couRegistEnd){      
-    string filename = to_string(curYear->start) + ".csv";
+void ExportData (Year *&curYear, bool couRegistEnd){
+    Course *pHeadCou[3];
+    pHeadCou[0] = curYear -> Sem1.pHeadCou;
+    pHeadCou[1] = curYear -> Sem2.pHeadCou;
+    pHeadCou[2] = curYear -> Sem3.pHeadCou;      
+    string filename = to_string (curYear -> start) + ".csv";
+    ofstream ofile (filename.c_str());
+    for (int i = 0; i < 3; i++){
+        Course *pcurCou = pHeadCou[i];
+        int count = 0;
+        while (pcurCou != nullptr){
+            pcurCou = pcurCou -> pNext;
+            count ++;
+        }
+        pcurCou = pHeadCou[i];
+        // Xuất danh học kì và số lượng course trước rồi mới xuất danh sách các course
+        ofile << i+1 << "," << count << endl;
+        while (pcurCou != nullptr){
+            ofile << pcurCou -> IDCou << ",";
+            ofile << pcurCou -> nameCou << ",";
+            ofile << pcurCou -> credits << ",";
+            ofile << pcurCou -> day1 << ",";
+            ofile << pcurCou -> session1 << ",";
+            ofile << pcurCou -> day2 << ",";
+            ofile << pcurCou -> session2 << ",";
+            ofile << pcurCou -> teacher << ",";
+            ofile << pcurCou -> enrolling << ",";
+            ofile << pcurCou -> maxStu << endl;
+            pcurCou = pcurCou -> pNext;
+        } 
+    }        
     Class *pHeadClass = curYear -> pHeadClass;
     Class *pcurClass = pHeadClass;
-    ofstream ofile (filename.c_str());
-    int length = strlen (pHeadCou -> IDCou.c_str());
+    int length = strlen (pHeadCou[0] -> IDCou.c_str());
     Student *pcurStu;
     Score *pcurScore;
     // Xuất tên class và số lượng học sinh trong class trước
@@ -1283,7 +1340,7 @@ void ExportData (Year *curYear, int semester, bool couRegistEnd){
                     else 
                         ofile << pcurScore -> GPA << endl;
                     pcurScore = pcurScore -> pNext;
-                }
+                    }
             }
             pcurStu = pcurStu -> pNext;
         }
@@ -1730,6 +1787,12 @@ int checkTime(){
 	return t;
 }
 
+void ImportOldData (Year *&curYear){
+    string tmp = "datayear";
+    for (int i = 4; i > 1; i--)
+        ImportOldStu (tmp + to_string(i) + ".csv", curYear -> pHeadClass);
+}
+
 void importData(Year *&pcurYear){
 	fstream FILE;
 	FILE.open("Year.txt",ios::in);
@@ -1744,11 +1807,13 @@ void importData(Year *&pcurYear){
 		pcurYear->end = end_year;
 		
 		pcurYear->pHeadClass = NULL;
-		ImportOldStu (to_string(pcurYear->start) + ".csv", pcurYear->pHeadClass);
-		
-		importCourse(to_string(pcurYear->start) + "Sem1.csv", pcurYear, 1);
-		importCourse(to_string(pcurYear->start) + "Sem2.csv", pcurYear, 2);
-		importCourse(to_string(pcurYear->start) + "Sem3.csv", pcurYear, 3);
+        if (yearbegin == false)
+            ImportOldData (pcurYear);	    
+        //else if (yearbegin == true)
+               
+		//importCourse(to_string(pcurYear->start) + "Sem1.csv", pcurYear, 1);
+		//importCourse(to_string(pcurYear->start) + "Sem2.csv", pcurYear, 2);
+		//importCourse(to_string(pcurYear->start) + "Sem3.csv", pcurYear, 3);
 		if (pcurYear->Sem1.pHeadCou != NULL)
 			orderSem = 1;
 		if (pcurYear->Sem2.pHeadCou != NULL)
