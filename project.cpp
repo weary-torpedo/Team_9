@@ -405,6 +405,71 @@ void exportCourseToTeacher(Year* pcurYear, int orderSem, int orderCou){
 	return;
 }
 
+void importCourseScore(Year* pcurYear,int orderSem,string filename){
+	Course* pCurCou;
+	switch(orderSem){
+		case 1:
+			pCurCou = pcurYear->Sem1.pHeadCou;
+			break;
+		case 2:
+			pCurCou = pcurYear->Sem2.pHeadCou;
+			break;
+		case 3:
+			pCurCou = pcurYear->Sem3.pHeadCou;
+			break;
+		
+	}
+	string tmp = "";
+	int i = 0;
+	while(filename[i] != '.')
+		tmp += filename[i];
+	while(pCurCou->IDCou != tmp)
+		pCurCou = pCurCou->pNext;
+	ifstream fin;
+	fin.open(filename);
+	getline(fin,tmp);
+	getline(fin,tmp);
+	for ( int i = 0; i < pCurCou->enrolling; i++){
+		getline(fin,tmp,',');
+		getline(fin,tmp,',');
+		getline(fin,tmp,',');
+		Score* pCur = pCurCou->Stu[i]->Inclass;
+		while(pCur->CouID != pCurCou->IDCou)
+			pCur = pCur->pNext;
+		getline(fin,tmp,',');
+		pCur->Mid = stof(tmp);
+		getline(fin,tmp,',');
+		pCur->Final = stof(tmp);
+		getline(fin,tmp,',');
+		pCur->Total = stof(tmp);
+		getline(fin,tmp,',');
+		pCur->Other = stof(tmp);
+		if(pCur->Total >= 0 && pCur->Total <= 2.9)
+			pCur->GPA = 0.0;
+		if(pCur->Total >= 3.0 && pCur->Total <= 3.9)
+			pCur->GPA = 0.5;
+		if(pCur->Total >= 4.0 && pCur->Total <= 4.7)
+			pCur->GPA = 1.0;
+		if(pCur->Total >= 4.8 && pCur->Total <= 5.4)
+			pCur->GPA = 1.5;
+		if(pCur->Total >= 5.5 && pCur->Total <= 6.2)
+			pCur->GPA = 2.0;
+		if(pCur->Total >= 6.3 && pCur->Total <= 6.9)
+			pCur->GPA = 2.5;
+		if(pCur->Total >= 7.0 && pCur->Total <= 7.7)
+			pCur->GPA = 3.0;
+		if(pCur->Total >= 7.8 && pCur->Total <= 8.4)
+			pCur->GPA = 3.5;
+		if(pCur->Total >= 8.5 && pCur->Total <= 10.0)
+			pCur->GPA = 4.0;
+	}
+	fin.close();
+	cout << "The score board has been updated!!!" << endl;
+	cout << "Press any key to back...";
+	getch();
+	return;
+}
+
 void staffScore(Year* pcurYear, int orderSem){
 	Course* pHeadCou;
 	switch(orderSem){
@@ -450,7 +515,19 @@ void staffScore(Year* pcurYear, int orderSem){
 			exportCourseToTeacher(pcurYear,orderSem,orderCou);
 		}
 		else if (c == 'i' || c == 'I'){
-			
+			system("cls");
+			Course* pCur = pHeadCou;
+			int No = 0;
+			string filename;
+			cout << "Here all courses in this semester:" << endl;
+			while(pCur != NULL){
+				No++;
+				cout << No << ") " << pCur->IDCou << ". " << pCur->nameCou << " " << pCur->teacher << endl;
+				pCur = pCur->pNext;
+			}
+			cout << "Which course do you want to update the scoreboard? Please enter the course's file (Ex: 001.csv): ";
+			cin >> filename;
+			importCourseScore(pcurYear,orderSem,filename);
 		}
 	}
 }
