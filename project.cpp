@@ -68,18 +68,9 @@ struct Year{
 };
 
 string startDateRegister, endDateRegister;
-bool logOut, isRegister;
+bool logOut, isRegister, exitProgram, hasScore;
 int orderSem, soluong;
 
-void staffSee(Year *&pcurYear, int orderSem);
-
-void createCourseCSV(Year *&pCurYear, int orderSem);
-void createCourse(Year *&pCurYear, int orderSem);
-void editCourse(Year *&pCurYear, int orderSem, int orderCou);
-void deleteCourse(Year *&pCurYear, int orderSem, int orderCou);
-void exportCourse(Year *pCurYear, int orderSem, bool semEnd);
-void listCourse(Year *pCurYear, int orderSem, int &soluong);
-void createCourseRegister(Year *&pCurYear, int &orderSem);
 void PrintCourse (Year *pCurYear, int semester);
 void RegisterCou(Year *&pcurYear, int sem, Course *pHead, Student *curStu);
 bool CheckScheduleCou (Student *curStu, Course *curEnroll, Course *pHead);
@@ -93,8 +84,19 @@ void UpdateData (Year *&pCurYear, int semester, bool yearCreated, bool createSco
 // Hàm cần truyền vào biến bool Course Register kết thúc chưa
 void ExportData (Year *&curYear, bool couRegistEnd);
 void readData (Year *&pcurYear, bool hasScore);
-void createSemester(Year *&pCurYear, int &orderSem);
 
+void staffScore(Year* pcurYear, int orderSem);
+
+void staffSee(Year *&pcurYear, int orderSem);
+
+void createCourseCSV(Year *&pCurYear, int orderSem);
+void createCourse(Year *&pCurYear, int orderSem);
+void editCourse(Year *&pCurYear, int orderSem, int orderCou);
+void deleteCourse(Year *&pCurYear, int orderSem, int orderCou);
+void exportCourse(Year *pCurYear, int orderSem);
+void listCourse(Year *pCurYear, int orderSem, int &soluong);
+void createCourseRegister(Year *&pCurYear, int &orderSem);
+void createSemester(Year *&pCurYear, int &orderSem);
 Class* CreateClass(Class*& phead, string tmp, Year*& curyear);
 void ImportNewStu (string filename,  Class *curClass);
 // hàm importOldStu import 1 file data.
@@ -103,18 +105,13 @@ void ImportOldStu(string filename, Class*& cHead);
 void ImportOldData (Year *&curYear);
 void ImportClasses (Class *&pheadClass, Year *&pcurYear);
 void OutPutStu (Class *pheadClass);
-
 void createYear(Year *&pcurYear);
-
 void staffCreate(Year *&pcurYear, int &orderSem);
 
 int checkTime();
-
 void changePass(string username);
 void viewProfile(Student *pStu);
 void homePage(Student *pStu, string username);
-
-void importData(Year *&pcurYear);
 
 void gotoxy(int x, int y);
 void printBox(string text, int x, int y, int size);
@@ -125,30 +122,32 @@ string loginSystem();
 
 int main(){
 	Year *pcurYear;
-	importData(pcurYear);
+	readData(pcurYear,0);
+	exitProgram = false;
 	do{
 		logOut = false;
 		gotoxy(20,20);
 		string username =  loginSystem();
-		Student* pStudent = afterLog(username,pcurYear);
+		Student* pStudent;
+		if ('2' <= username[0] && username[0] <= '9')
+			pStudent = afterLog(username,pcurYear);
 		homePage(pStudent, username);
 		int time;
 		
-		if (!logOut && !('2' <= username[0] && username[0] <= '9'))
+		if (!logOut && !exitProgram && !('2' <= username[0] && username[0] <= '9'))
 			time = checkTime();
 		
-		if (!logOut && !('2' <= username[0] && username[0] <= '9') && time == 1)
+		if (!logOut && !exitProgram && !('2' <= username[0] && username[0] <= '9') && time == 1)
 				staffCreate(pcurYear, orderSem);
-		if (!logOut && !('2' <= username[0] && username[0] <= '9') && time == 2)
+		if (!logOut && !exitProgram && !('2' <= username[0] && username[0] <= '9') && time == 2)
 				staffSee(pcurYear, orderSem);
-		if (!logOut && !('2' <= username[0] && username[0] <= '9') && time == 3)
+		if (!logOut && !exitProgram && !('2' <= username[0] && username[0] <= '9') && time == 3)
 				staffScore(pcurYear, orderSem);	
-		if (!logOut && ('2' <= username[0] && username[0] <= '9') && isRegister)
+		if (!logOut && !exitProgram && ('2' <= username[0] && username[0] <= '9') && isRegister)
 				Runtest(pcurYear, orderSem, pStudent);
-
-
 	}
-	while (logOut);
+	while (logOut && !exitProgram);
+	//ExportData(pcurYear, hasScore);
 	
 	gotoxy(30,30);
 	return 0;
@@ -406,7 +405,6 @@ void exportCourseToTeacher(Year* pcurYear, int orderSem, int orderCou){
 	return;
 }
 
-
 void staffScore(Year* pcurYear, int orderSem){
 	Course* pHeadCou;
 	switch(orderSem){
@@ -423,13 +421,18 @@ void staffScore(Year* pcurYear, int orderSem){
 	}
 	while (!logOut){
 		system("cls");
-		printBox("Press e to export list students of course to update the scoreboard.",xp,5,50);
-		printBox("Press i to import the updated scoreboard of course.",xp,8,50);
-		printBox("Press O to log out",xp,11,50);
+		printBox("Press E to export list students of course to update the scoreboard.",xp,5,70);
+		printBox("Press I to import the updated scoreboard of course.",xp,8,70);
+		printBox("Press O to log out",xp,11,33);
+		printBox("Press ESC to exit",xp + 37,11,33);
 		
 		char c = getch();
 		if (c == 'o' || c == 'O'){
 			logOut = true;
+			return;
+		}
+		else if (c == 27){
+			exitProgram = true;
 			return;
 		}
 		else if (c == 'e' || c == 'E'){
@@ -459,10 +462,15 @@ void staffSee(Year *&pcurYear, int orderSem){
 		printBox("Press 1 to see list of classes",xp,5,50);
 		printBox("Press 2 to see list of courses",xp,8,50);
 		printBox("Press O to log out",xp,11,50);
+		printBox("Press ESC to exit",xp,14,50);
 		
 		char c = getch();
-		if (c == 'o' || c == 'O'){
+		if ( c == 'o' || c == 'O'){
 			logOut = true;
+			return;
+		}
+	else if ( c == 27){
+			exitProgram = true;
 			return;
 		}
 	else if ( c == '1')
@@ -859,7 +867,7 @@ void deleteCourse(Year *&pCurYear, int orderSem, int orderCou){
 	getch();
 }
 
-void exportCourse(Year *pCurYear, int orderSem, bool semEnd){
+void exportCourse(Year *pCurYear, int orderSem){
 	fstream FILE;
 	
 	Course *pHeadCou;
@@ -893,38 +901,36 @@ void exportCourse(Year *pCurYear, int orderSem, bool semEnd){
 		FILE << pCurCou->maxStu  << ",";
 		FILE << pCurCou->enrolling << "\n";
 		
-        if (semEnd == true){
-            for (int i = 1; i <= pCurCou->enrolling; i++){
-                FILE << i << "," ;
-                FILE << pCurCou->Stu[i]->IDStu << "," ;
-                FILE << pCurCou->Stu[i]->firstname << "," ;
-                FILE << pCurCou->Stu[i]->lastname << "," ;
-                FILE << pCurCou->Stu[i]->date << "," ;
-                FILE << pCurCou->Stu[i]->IDSocial << "\n" ;		
-                Score *pcurScore = pCurCou -> Stu[i] -> Inclass;
-                while (strcmp(pcurScore -> CouID.c_str(), pCurCou -> IDCou) != 0)
-                    pcurScore = pcurScore -> pNext;
-                if(pcurScore->Mid != -1);
-                    FILE << pcurScore->Mid << ",";
-                else 
-                    FILE << "-" << ",";
-                if(pcurScore->Final != -1)
-                    FILE << pcurScore->Final << ",";
-                else 
-                    FILE << "-" << ",";
-                if(pcurScore->Total != -1)
-                    FILE << pcurScore->Total << ",";
-                else 
-                    FILE << "-" << ",";
-                if(pcurScore->Other != -1)
-                    FILE << pcurScore->Other << ",";
-                else 
-                    FILE << "-" << ",";
-                if(pcurScore->GPA != -1)
-                    FILE << pcurScore->GPA << "," << endl;
-                else 
-                    FILE << "-" << "," << endl;
-
+        for (int i = 1; i <= pCurCou->enrolling; i++){
+            FILE << i << "," ;
+            FILE << pCurCou->Stu[i]->IDStu << "," ;
+            FILE << pCurCou->Stu[i]->firstname << "," ;
+        	FILE << pCurCou->Stu[i]->lastname << "," ;
+            FILE << pCurCou->Stu[i]->date << "," ;
+            FILE << pCurCou->Stu[i]->IDSocial << "\n" ;		
+            Score *pcurScore = pCurCou -> Stu[i] -> Inclass;
+            while (strcmp(pcurScore -> CouID.c_str(), pCurCou -> IDCou.c_str()) != 0)
+                pcurScore = pcurScore -> pNext;
+            if(pcurScore->Mid != -1)
+                FILE << pcurScore->Mid << ",";
+            else 
+                FILE << "-" << ",";
+            if(pcurScore->Final != -1)
+                FILE << pcurScore->Final << ",";
+            else 
+                FILE << "-" << ",";
+            if(pcurScore->Total != -1)
+                FILE << pcurScore->Total << ",";
+            else 
+                FILE << "-" << ",";
+            if(pcurScore->Other != -1)
+                FILE << pcurScore->Other << ",";
+            else 
+                FILE << "-" << ",";
+            if(pcurScore->GPA != -1)
+                FILE << pcurScore->GPA << "," << endl;
+            else 
+                FILE << "-" << "," << endl;
         }
 		pCurCou = pCurCou->pNext;
 	}		
@@ -1008,7 +1014,8 @@ void createCourseRegister(Year *&pcurYear, int &orderSem){
 		printBox("Press 2 to see list of courses",xp,8,size);
 		printBox("Press 3 to active course registration session",xp,11,size);
 		printBox("Press O to log out",xp,14,size);	
-	
+		printBox("Press ESC to exit",xp,17,size);
+		
 		char c = getch();
 		if ( c == '1' ){
 			int TMP;
@@ -1064,12 +1071,14 @@ void createCourseRegister(Year *&pcurYear, int &orderSem){
 		else if ( c == '3')
 			activeCourseRegister(pcurYear);
 		else if ( c == 'O' || c == 'o'){
-			exportCourse(pcurYear, orderSem);
 			logOut = true;
 			return;
 		}
+		else if ( c == 27){
+			exitProgram = true;
+			return;
+		}
 	}
-}
 //Hàm dùng in danh sách các khóa học ra console cho học sinh chọn
 //Sau khi chọn xong dùng lại hàm này sẽ cập nhập số lượng học sinh đang đăng ký
 //khóa học
@@ -1351,135 +1360,160 @@ void ExportData (Year *&curYear, bool couRegistEnd){
 }
 
 void readData (Year *&pcurYear, bool hasScore){
-    string filename = to_string(pcurYear -> start) + ".csv";
-    ifstream ifile (filename.c_str());
-    Semester *sem[3];
-    sem[0] = &pcurYear -> Sem1;
-    sem[1] = &pcurYear -> Sem2;
-    sem[2] = &pcurYear -> Sem3; 
-    Course *pcurCou;
-    string tmp;
-    for (int i = 0; i < 3; i++){
-        getline (ifile, tmp, ',');
-        getline (ifile, tmp, '\n'); 
-        int count = stoi (tmp);
-        pcurCou = nullptr;
-        for (int j = 0; j < count; j++){
-            Course *pNew = new Course;
-            getline(ifile, tmp,',');
-            if (tmp == "\0")
-                break;
-            pNew -> IDCou = tmp;
-            getline(ifile, tmp, ',');
-            pNew -> nameCou = tmp;
-            getline(ifile, tmp, ',');
-            pNew->credits = stoi(tmp.c_str()); 
-            getline(ifile, tmp, ',');
-            pNew -> day1 = tmp;
-            getline(ifile, tmp, ',');
-            pNew -> session1 = tmp;
-            getline(ifile, tmp, ',');
-            pNew -> day2 = tmp;
-            getline(ifile, tmp, ',');
-            pNew -> session2 = tmp;
-            getline(ifile, tmp, ',');
-            pNew -> teacher = tmp;
-            getline(ifile, tmp, ',');
-            pNew -> enrolling = stoi (tmp.c_str());
-            getline (ifile, tmp, '\n'); 
-            pNew -> maxStu = stoi (tmp);
-            tmp = "";
-            if (sem[i] -> pHeadCou == nullptr)
-                sem[i] -> pHeadCou  = pNew;
-            if (pcurCou != nullptr)
-                pcurCou->pNext = pNew;
-            pcurCou = pNew;
-        }
-    }
-    getline (ifile, tmp, ',');
-    Class *curClass;
-    Student *curStu;
-    Score *curScore;
-    int length = strlen(sem[0] -> pHeadCou -> IDCou.c_str());
-    while (!ifile.eof()) {
-        if (tmp != "\0") {
-            if ( pcurYear -> pHeadClass != nullptr) {
-                curClass->pNext = new Class;
-                curClass = curClass->pNext;
-                curClass -> pNext = nullptr;
-            }
-            else {
-                curClass = new Class;
-                pcurYear -> pHeadClass = curClass; 
-            }
-            curClass->className = tmp;
-            getline(ifile, tmp, '\n');
-            curClass->numberOfStu = stoi(tmp.c_str());
-            for (int i = curClass->numberOfStu; i > 0; i--) {
-                if (i != curClass->numberOfStu) {
-                    curStu->pNext = new Student;
-                    curStu = curStu->pNext;
-                }
-                else { 
-                    curStu = new Student;
-                    curClass -> pHeadStu = curStu;
-                }
-                getline (ifile, tmp, ',');
-                curStu->No = stoi(tmp.c_str());
-                getline(ifile, tmp, ',');
-                curStu->IDStu = stoi(tmp.c_str());
-                getline(ifile, tmp, ',');
-
-                curStu->firstname = tmp;
-                getline(ifile, tmp, ',');
-                curStu->lastname = tmp;
-                getline(ifile, tmp, ',');
-                curStu->gender = tmp;
-                getline(ifile, tmp, ',');
-                curStu->date = tmp;         
-                getline(ifile, tmp, ',');
-                curStu->IDSocial = stoi(tmp.c_str());
-                getline (ifile, tmp, '\n');
-                curStu -> course = tmp;
-                curStu->pNext = nullptr;
-                if (hasScore == true){
-                    int end = strlen(curStu -> course.c_str()) / length;
-                    for (int j = 0; j < end; j++){
-                        if (curStu -> Inclass == nullptr){
-                            curScore = new Score;
-                            curStu -> Inclass = curScore;
-                        }
-                        else {
-                            curScore -> pNext = new Score;
-                            curScore = curScore -> pNext;
-                            curScore -> pNext = nullptr;
-                        }
-                        getline(ifile, tmp, ',');
-                        curScore -> semester = stoi (tmp);
-                        getline (ifile, tmp, ',');
-                        curScore -> CouID = tmp;
-                        getline (ifile, tmp, ',');
-                        curScore -> Mid = stoi (tmp);
-                        getline (ifile, tmp, ',');
-                        curScore -> Final = stoi (tmp);
-                        getline (ifile, tmp, ',');
-                        curScore -> Total = stoi (tmp);
-                        getline (ifile, tmp, ',');
-                        curScore -> Other = stoi (tmp);
-                        if (j != end -1)
-                            getline (ifile, tmp, ',');
-                        else getline (ifile, tmp, '\n');
-                        curScore -> GPA = stoi (tmp);
-                    }
-                    curScore = nullptr;
-                }
-            }
-        }
-        else break;
-        getline (ifile, tmp, ',');
-    }
-    for (int i = 1; i < 4; i++)
-        UpdateData(pcurYear, i, true, false); 
+	fstream FILE;
+	FILE.open("status.txt",ios::in);
+	int start_year, end_year;
+	while (!FILE.eof())
+		FILE >> start_year >> end_year >> isRegister >> hasScore;
+	FILE.close();
+	
+	if (start_year && end_year){
+		pcurYear = new Year;
+		pcurYear->start = start_year;
+		pcurYear->end = end_year;
+		
+		string filename = to_string(pcurYear -> start) + ".csv";
+	    ifstream ifile (filename.c_str());
+	    Semester *sem[3];
+	    sem[0] = &pcurYear -> Sem1;
+	    sem[1] = &pcurYear -> Sem2;
+	    sem[2] = &pcurYear -> Sem3; 
+	    Course *pcurCou;
+	    string tmp;
+	    for (int i = 0; i < 3; i++){
+	        getline (ifile, tmp, ',');
+	        getline (ifile, tmp, '\n'); 
+	        int count = stoi (tmp);
+	        sem[i]->pHeadCou = NULL;
+	        pcurCou = nullptr;
+	        for (int j = 0; j < count; j++){
+	            Course *pNew = new Course;
+	            getline(ifile, tmp,',');
+	            if (tmp == "\0")
+	                break;
+	            pNew -> IDCou = tmp;
+	            getline(ifile, tmp, ',');
+	            pNew -> nameCou = tmp;
+	            getline(ifile, tmp, ',');
+	            pNew->credits = stoi(tmp.c_str()); 
+	            getline(ifile, tmp, ',');
+	            pNew -> day1 = tmp;
+	            getline(ifile, tmp, ',');
+	            pNew -> session1 = tmp;
+	            getline(ifile, tmp, ',');
+	            pNew -> day2 = tmp;
+	            getline(ifile, tmp, ',');
+	            pNew -> session2 = tmp;
+	            getline(ifile, tmp, ',');
+	            pNew -> teacher = tmp;
+	            getline(ifile, tmp, ',');
+	            pNew -> enrolling = stoi (tmp.c_str());
+	            getline (ifile, tmp, '\n'); 
+	            pNew -> maxStu = stoi (tmp);
+	            tmp = "";
+	            if (sem[i] -> pHeadCou == nullptr)
+	                sem[i] -> pHeadCou  = pNew;
+	            if (pcurCou != nullptr)
+	                pcurCou->pNext = pNew;
+	            pcurCou = pNew;
+	        }
+	    }
+	    getline (ifile, tmp, ',');
+	    Class *curClass;
+	    pcurYear->pHeadClass = NULL;
+	    Student *curStu;
+	    Score *curScore;
+	    int length = strlen(sem[0] -> pHeadCou -> IDCou.c_str());
+	    while (!ifile.eof()) {
+	        if (tmp != "\0") {
+	            if ( pcurYear -> pHeadClass != nullptr) {
+	                curClass->pNext = new Class;
+	                curClass = curClass->pNext;
+	                curClass -> pNext = nullptr;
+	            }
+	            else {
+	                curClass = new Class;
+	                pcurYear -> pHeadClass = curClass; 
+	            }
+	            curClass->className = tmp;
+	            getline(ifile, tmp, '\n');
+	            curClass->numberOfStu = stoi(tmp.c_str());
+	            for (int i = curClass->numberOfStu; i > 0; i--) {
+	                if (i != curClass->numberOfStu) {
+	                    curStu->pNext = new Student;
+	                    curStu = curStu->pNext;
+	                }
+	                else { 
+	                    curStu = new Student;
+	                    curClass -> pHeadStu = curStu;
+	                }
+	                getline (ifile, tmp, ',');
+	                curStu->No = stoi(tmp.c_str());
+	                getline(ifile, tmp, ',');
+	                curStu->IDStu = stoi(tmp.c_str());
+	                getline(ifile, tmp, ',');
+	
+	                curStu->firstname = tmp;
+	                getline(ifile, tmp, ',');
+	                curStu->lastname = tmp;
+	                getline(ifile, tmp, ',');
+	                curStu->gender = tmp;
+	                getline(ifile, tmp, ',');
+	                curStu->date = tmp;         
+	                getline(ifile, tmp, ',');
+	                curStu->IDSocial = stoi(tmp.c_str());
+	                getline (ifile, tmp, '\n');
+	                curStu -> course = tmp;
+	                curStu->pNext = nullptr;
+	                if (hasScore == true){
+	                    int end = strlen(curStu -> course.c_str()) / length;
+	                    for (int j = 0; j < end; j++){
+	                        if (curStu -> Inclass == nullptr){
+	                            curScore = new Score;
+	                            curStu -> Inclass = curScore;
+	                        }
+	                        else {
+	                            curScore -> pNext = new Score;
+	                            curScore = curScore -> pNext;
+	                            curScore -> pNext = nullptr;
+	                        }
+	                        getline(ifile, tmp, ',');
+	                        curScore -> semester = stoi (tmp);
+	                        getline (ifile, tmp, ',');
+	                        curScore -> CouID = tmp;
+	                        getline (ifile, tmp, ',');
+	                        curScore -> Mid = stoi (tmp);
+	                        getline (ifile, tmp, ',');
+	                        curScore -> Final = stoi (tmp);
+	                        getline (ifile, tmp, ',');
+	                        curScore -> Total = stoi (tmp);
+	                        getline (ifile, tmp, ',');
+	                        curScore -> Other = stoi (tmp);
+	                        if (j != end -1)
+	                            getline (ifile, tmp, ',');
+	                        else getline (ifile, tmp, '\n');
+	                        curScore -> GPA = stoi (tmp);
+	                    }
+	                    curScore = nullptr;
+	                }
+	            }
+	        }
+	        else break;
+	        getline (ifile, tmp, ',');
+	    }
+	    for (int i = 1; i < 4; i++)
+	        UpdateData(pcurYear, i, true, false);
+		if (pcurYear->Sem1.pHeadCou != NULL)
+			orderSem = 1;
+		if (pcurYear->Sem2.pHeadCou != NULL)
+			orderSem = 2;
+		if (pcurYear->Sem3.pHeadCou != NULL)
+			orderSem = 3;	
+	}
+	else
+		pcurYear = NULL;	
+		
+     
 }
 
 void Runtest(Year *pcurYear, int orderSem, Student *curStu){
@@ -1502,6 +1536,10 @@ void Runtest(Year *pcurYear, int orderSem, Student *curStu){
 }
 
 void createSemester(Year *&pcurYear, int &orderSem){
+	if (pcurYear->Sem1.pHeadCou != NULL)
+		exportCourse(pcurYear, 1);
+	if (pcurYear->Sem2.pHeadCou != NULL)
+		exportCourse(pcurYear, 2);
 	system("cls");
 	cout << "\n\n\n\n\n\n";
 	cout << "        " << "Which sem do you want to create? ";
@@ -1682,25 +1720,6 @@ void ImportClasses (Class *&pheadClass, Year *&pcurYear){
         Class *pcurClass = CreateClass (pheadClass, classname, pcurYear);
         ImportNewStu(filename, pcurClass);
     } 
-    fstream FILE;
-    FILE.open (to_string(pcurYear->start) + ".csv", ios::out | ios::app);
-    Class *pcurClass = pheadClass;
-    while (pcurClass){
-    	FILE << pcurClass->className << ", " << pcurClass->numberOfStu << endl;
-    	Student *pcurStu = pcurClass->pHeadStu;
-    	while (pcurStu){
-    		FILE << pcurStu->No << ",";
-    		FILE << pcurStu->IDStu << ", ";
-    		FILE << pcurStu->firstname << ", ";
-    		FILE << pcurStu->lastname << ", ";
-    		FILE << pcurStu->gender << ", ";
-    		FILE << pcurStu->date << ", ";
-    		FILE << pcurStu->IDSocial << "\n";
-    		pcurStu = pcurStu->pNext;
-		}
-		pcurClass = pcurClass->pNext;
-	}
-    FILE.close();
 }
 
 void OutPutStu (Class *pheadClass){
@@ -1725,14 +1744,21 @@ void OutPutStu (Class *pheadClass){
     }
 }
 
+void ImportOldData (Year *&curYear){
+    string tmp = "datayear";
+    curYear->pHeadClass = NULL;
+    for (int i = 4; i > 1; i--)
+        ImportOldStu (tmp + to_string(i) + ".csv", curYear -> pHeadClass);
+}
+
 void createYear(Year *&pcurYear){	
 	system ("cls");
 	if (pcurYear == NULL)
 		pcurYear = new Year;
-	pcurYear->pHeadClass = NULL;
 	pcurYear->Sem1.pHeadCou = NULL;
 	pcurYear->Sem2.pHeadCou = NULL;
 	pcurYear->Sem3.pHeadCou = NULL;
+	ImportOldData(pcurYear);
 	
 	cout << "\n\n\n\n\n\n";
 	cout << "        " << "When does the school year start?  ";
@@ -1743,14 +1769,7 @@ void createYear(Year *&pcurYear){
 	cout << "\n        " << "PRESS ENTER TO GO BACK...";
 	
 	fstream FILE;
-	FILE.open(to_string(pcurYear->start) + "Sem1.csv",ios::out);
-	FILE.close();
-	FILE.open(to_string(pcurYear->start) + "Sem2.csv",ios::out);
-	FILE.close();
-	FILE.open(to_string(pcurYear->start) + "Sem3.csv",ios::out);
-	FILE.close();
-	
-	FILE.open ("Year.txt",ios::out);
+	FILE.open ("status.txt",ios::out);
 	FILE << pcurYear->start << " " << pcurYear->end << " " << isRegister;
 	FILE.close();
 	
@@ -1758,7 +1777,7 @@ void createYear(Year *&pcurYear){
 }
 
 void staffCreate(Year *&pcurYear, int &orderSem){
-	while (!logOut){
+	while (!logOut && !exitProgram){
 		system("cls");
 		gotoxy(xp,3);
 		cout << "At the beginning of school year...";
@@ -1767,7 +1786,7 @@ void staffCreate(Year *&pcurYear, int &orderSem){
 		printBox("Press 3 to create a semester",xp,11,50);
 		printBox("Press 4 to create a course registration session",xp,14,50);
 		printBox("Press O to log out",xp,17,50);
-		printBox("Press Enter to do other operations",xp,20,50);
+		printBox("Press ESC to exit",xp,20,50);
 		
 		char c = getch();
 		if (c == 'o' || c == 'O'){
@@ -1781,9 +1800,11 @@ void staffCreate(Year *&pcurYear, int &orderSem){
 	else if ( c == '3')
 			createSemester(pcurYear,orderSem);
 	else if ( c == '4')
-			createCourseRegister(pcurYear, orderSem);	
-	else if ( c == 13)
-			return;
+			createCourseRegister(pcurYear, orderSem);
+	else if ( c == 27){
+		exitProgram = true;
+		return;
+		}
 	}
 }
 
@@ -1918,44 +1939,6 @@ int checkTime(){
 	int t;
 	cin >> t;
 	return t;
-}
-
-void ImportOldData (Year *&curYear){
-    string tmp = "datayear";
-    for (int i = 4; i > 1; i--)
-        ImportOldStu (tmp + to_string(i) + ".csv", curYear -> pHeadClass);
-}
-
-void importData(Year *&pcurYear){
-	fstream FILE;
-	FILE.open("Year.txt",ios::in);
-	int start_year, end_year;
-	while (!FILE.eof())
-		FILE >> start_year >> end_year >> isRegister;
-	FILE.close();
-	
-	if (start_year && end_year){
-		pcurYear = new Year;
-		pcurYear->start = start_year;
-		pcurYear->end = end_year;
-		
-		pcurYear->pHeadClass = NULL;
-        if (yearbegin == false)
-            ImportOldData (pcurYear);	    
-        //else if (yearbegin == true)
-               
-		//importCourse(to_string(pcurYear->start) + "Sem1.csv", pcurYear, 1);
-		//importCourse(to_string(pcurYear->start) + "Sem2.csv", pcurYear, 2);
-		//importCourse(to_string(pcurYear->start) + "Sem3.csv", pcurYear, 3);
-		if (pcurYear->Sem1.pHeadCou != NULL)
-			orderSem = 1;
-		if (pcurYear->Sem2.pHeadCou != NULL)
-			orderSem = 2;
-		if (pcurYear->Sem3.pHeadCou != NULL)
-			orderSem = 3;	
-	}
-	else
-		pcurYear = NULL;	
 }
 
 void box(int x, int y, int w, int h){
