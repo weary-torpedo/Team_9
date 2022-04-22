@@ -81,7 +81,7 @@ void exportCourse(Year *pCurYear, int orderSem, bool semEnd);
 void listCourse(Year *pCurYear, int orderSem, int &soluong);
 void createCourseRegister(Year *&pCurYear, int &orderSem);
 void PrintCourse (Year *pCurYear, int semester);
-void RegisterCou(Year *pcurYear, int sem, Course *pHead, Student *curStu);
+void RegisterCou(Year *&pcurYear, int sem, Course *pHead, Student *curStu);
 bool CheckScheduleCou (Student *curStu, Course *curEnroll, Course *pHead);
 void Runtest (Year *pcurYear, int sem, Student *curStu);
 //hàm update data được dùng để liên kết các dữ liệu lại
@@ -92,6 +92,7 @@ void UpdateData (Year *&pCurYear, int semester, bool yearCreated, bool createSco
 // Hàm export data dùng để lưu lại các data hiện có khi thoát chương trình
 // Hàm cần truyền vào biến bool Course Register kết thúc chưa
 void ExportData (Year *&curYear, bool couRegistEnd);
+void readData (Year *&pcurYear, bool hasScore);
 void createSemester(Year *&pCurYear, int &orderSem);
 
 Class* CreateClass(Class*& phead, string tmp, Year*& curyear);
@@ -367,7 +368,7 @@ void exportCourseToTeacher(Year* pcurYear, int orderSem, int orderCou){
 
 	string tmp = pCurCou->IDCou + ".csv";
 	ofstream fout;
-	fout.open(tmp);	
+	fout.open(tmp.c_str());	
 	fout << "BANG DIEM MON " << pCurCou->nameCou << endl;
 	fout << "NO,ID,NAME,MIDTERM MARK,FINAL MARK,TOTAL MARK,OTHER MARK" << endl;
 	for ( int i = 0; i < pCurCou->enrolling; i++){
@@ -1153,7 +1154,7 @@ bool CheckScheduleCou (Student *curStu, Course *curEnroll, Course *pHead){
     return false;
 }
 // hàm dùng để lấy nhận từ bàn phím số No của course và trả về course
-void RegisterCou(Year *pcurYear, int orderSem, Course *pHead, Student *curStu){
+void RegisterCou(Year *&pcurYear, int orderSem, Course *pHead, Student *curStu){
     int maxCourse = 0;
     Course *pcur = pHead;
     while (pcur != nullptr){
@@ -1347,6 +1348,138 @@ void ExportData (Year *&curYear, bool couRegistEnd){
         pcurClass = pcurClass -> pNext;
     } 
     ofile.close();
+}
+
+void readData (Year *&pcurYear, bool hasScore){
+    string filename = to_string(pcurYear -> start) + ".csv";
+    ifstream ifile (filename.c_str());
+    Semester *sem[3];
+    sem[0] = &pcurYear -> Sem1;
+    sem[1] = &pcurYear -> Sem2;
+    sem[2] = &pcurYear -> Sem3; 
+    Course *pcurCou;
+    string tmp;
+    for (int i = 0; i < 3; i++){
+        getline (ifile, tmp, ',');
+        getline (ifile, tmp, '\n'); 
+        int count = stoi (tmp);
+        pcurCou = nullptr;
+        for (int j = 0; j < count; j++){
+            Course *pNew = new Course;
+            getline(ifile, tmp,',');
+            if (tmp == "\0")
+                break;
+            pNew -> IDCou = tmp;
+            getline(ifile, tmp, ',');
+            pNew -> nameCou = tmp;
+            getline(ifile, tmp, ',');
+            pNew->credits = stoi(tmp.c_str()); 
+            getline(ifile, tmp, ',');
+            pNew -> day1 = tmp;
+            getline(ifile, tmp, ',');
+            pNew -> session1 = tmp;
+            getline(ifile, tmp, ',');
+            pNew -> day2 = tmp;
+            getline(ifile, tmp, ',');
+            pNew -> session2 = tmp;
+            getline(ifile, tmp, ',');
+            pNew -> teacher = tmp;
+            getline(ifile, tmp, ',');
+            pNew -> enrolling = stoi (tmp.c_str());
+            getline (ifile, tmp, '\n'); 
+            pNew -> maxStu = stoi (tmp);
+            tmp = "";
+            if (sem[i] -> pHeadCou == nullptr)
+                sem[i] -> pHeadCou  = pNew;
+            if (pcurCou != nullptr)
+                pcurCou->pNext = pNew;
+            pcurCou = pNew;
+        }
+    }
+    getline (ifile, tmp, ',');
+    Class *curClass;
+    Student *curStu;
+    Score *curScore;
+    int length = strlen(sem[0] -> pHeadCou -> IDCou.c_str());
+    while (!ifile.eof()) {
+        if (tmp != "\0") {
+            if ( pcurYear -> pHeadClass != nullptr) {
+                curClass->pNext = new Class;
+                curClass = curClass->pNext;
+                curClass -> pNext = nullptr;
+            }
+            else {
+                curClass = new Class;
+                pcurYear -> pHeadClass = curClass; 
+            }
+            curClass->className = tmp;
+            getline(ifile, tmp, '\n');
+            curClass->numberOfStu = stoi(tmp.c_str());
+            for (int i = curClass->numberOfStu; i > 0; i--) {
+                if (i != curClass->numberOfStu) {
+                    curStu->pNext = new Student;
+                    curStu = curStu->pNext;
+                }
+                else { 
+                    curStu = new Student;
+                    curClass -> pHeadStu = curStu;
+                }
+                getline (ifile, tmp, ',');
+                curStu->No = stoi(tmp.c_str());
+                getline(ifile, tmp, ',');
+                curStu->IDStu = stoi(tmp.c_str());
+                getline(ifile, tmp, ',');
+
+                curStu->firstname = tmp;
+                getline(ifile, tmp, ',');
+                curStu->lastname = tmp;
+                getline(ifile, tmp, ',');
+                curStu->gender = tmp;
+                getline(ifile, tmp, ',');
+                curStu->date = tmp;         
+                getline(ifile, tmp, ',');
+                curStu->IDSocial = stoi(tmp.c_str());
+                getline (ifile, tmp, '\n');
+                curStu -> course = tmp;
+                curStu->pNext = nullptr;
+                if (hasScore == true){
+                    int end = strlen(curStu -> course.c_str()) / length;
+                    for (int j = 0; j < end; j++){
+                        if (curStu -> Inclass == nullptr){
+                            curScore = new Score;
+                            curStu -> Inclass = curScore;
+                        }
+                        else {
+                            curScore -> pNext = new Score;
+                            curScore = curScore -> pNext;
+                            curScore -> pNext = nullptr;
+                        }
+                        getline(ifile, tmp, ',');
+                        curScore -> semester = stoi (tmp);
+                        getline (ifile, tmp, ',');
+                        curScore -> CouID = tmp;
+                        getline (ifile, tmp, ',');
+                        curScore -> Mid = stoi (tmp);
+                        getline (ifile, tmp, ',');
+                        curScore -> Final = stoi (tmp);
+                        getline (ifile, tmp, ',');
+                        curScore -> Total = stoi (tmp);
+                        getline (ifile, tmp, ',');
+                        curScore -> Other = stoi (tmp);
+                        if (j != end -1)
+                            getline (ifile, tmp, ',');
+                        else getline (ifile, tmp, '\n');
+                        curScore -> GPA = stoi (tmp);
+                    }
+                    curScore = nullptr;
+                }
+            }
+        }
+        else break;
+        getline (ifile, tmp, ',');
+    }
+    for (int i = 1; i < 4; i++)
+        UpdateData(pcurYear, i, true, false); 
 }
 
 void Runtest(Year *pcurYear, int orderSem, Student *curStu){
