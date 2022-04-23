@@ -107,7 +107,6 @@ void ImportClasses (Class *&pheadClass, Year *&pcurYear);
 void OutPutStu (Class *pheadClass);
 void createYear(Year *&pcurYear);
 void staffCreate(Year *&pcurYear, int &orderSem);
-
 int checkTime();
 void changePass(string username);
 void viewProfile(Student *pStu);
@@ -135,14 +134,13 @@ int main(){
 		
 		if (!logOut && !exitProgram && !('2' <= username[0] && username[0] <= '9'))
 			time = checkTime();
-		
 		if (!logOut && !exitProgram && !('2' <= username[0] && username[0] <= '9') && time == 1)
 				staffCreate(pcurYear, orderSem);
 		if (!logOut && !exitProgram && !('2' <= username[0] && username[0] <= '9') && time == 2)
 				staffSee(pcurYear, orderSem);
 		if (!logOut && !exitProgram && !('2' <= username[0] && username[0] <= '9') && time == 3)
 				staffScore(pcurYear, orderSem);	
-		if (!logOut && !exitProgram && ('2' <= username[0] && username[0] <= '9') && isRegister)
+		if (!logOut && !exitProgram && ('2' <= username[0] && username[0] <= '9'))
 				Runtest(pcurYear, orderSem, pStudent);
 	}
 	while (logOut && !exitProgram);
@@ -1053,10 +1051,29 @@ void createCourseRegister(Year *&pcurYear, int &orderSem){
 			return;
 		}
 	}
+}
 //Hàm dùng in danh sách các khóa học ra console cho học sinh chọn
 //Sau khi chọn xong dùng lại hàm này sẽ cập nhập số lượng học sinh đang đăng ký
 //khóa học
-void PrintCourse (Year *pCurYear, int orderSem){
+void PrintCourse (Year *pCurYear, string course, int orderSem, int size, bool Enroll){
+	if (!size){
+		system("cls");
+		size = 1;
+		if (!Enroll){
+			gotoxy(xp + 40, size);
+			cout << "LIST COURSE IN THIS SEMESTER";	
+		}
+		else{
+			gotoxy(xp + 30, size);
+			cout << "LIST COURSE YOU HAVE TO STUDY IN THIS SEMESTER";
+		}
+			
+		size += 1;
+	}
+	else{
+		gotoxy(xp + 40, size - 1);
+		cout << "LIST COURSE YOU HAVE ENROLLED";
+	}
     Course *pHeadCou;
     switch (orderSem){
 		case 1:{
@@ -1075,33 +1092,72 @@ void PrintCourse (Year *pCurYear, int orderSem){
     Course *pCurCou = pHeadCou;
     int count = 1;
     string tmp;
-    cout.width(8);
-    cout << left << "No"; cout.width (10);
-    cout <<  "ID" ; cout.width(25);
-    cout << "Name course" ; cout.width(10);
-    cout << "Credit" ; cout.width(10);
-    cout << "Day 1" ; cout.width(15); 
-    cout << "Session 1" ; cout.width(10);
-    cout << "Day 2" ; cout.width(15);
-    cout << "Session 2"; cout.width(20);
-    cout << "Teacher" ; cout.width(10);
-    cout << "Student" << endl; 
+    
+    gotoxy (xp, size);
+    cout << "No";
+    gotoxy (xp + 5, size);
+    cout <<  "ID" ;
+    gotoxy (xp + 17, size);
+    cout << "Name course" ;
+    gotoxy (xp + 50, size);
+    cout << "Credit" ;
+    gotoxy (xp + 59, size);
+    cout << "Day 1" ; 
+    gotoxy (xp + 65, size);
+    cout << "Session 1" ; 
+    gotoxy (xp + 75, size);
+    cout << "Day 2" ; 
+    gotoxy (xp + 81, size);
+    cout << "Session 2"; 
+    gotoxy (xp + 91, size);
+    cout << "Teacher" ; 
+    gotoxy (xp + 113, size);
+    cout << "Student";
 	while (pCurCou != NULL){
-        cout.width(8);
-        cout << left << count;  cout.width(10);
-		cout <<  pCurCou->IDCou; cout.width(25);
-		cout << pCurCou->nameCou ; cout.width(10);
-		cout << pCurCou->credits ; cout.width(10);
-		cout << pCurCou->day1 ; cout.width(15);
-		cout << pCurCou->session1 ; cout.width(10);
-		cout << pCurCou->day2 ; cout.width(15);
-		cout << pCurCou->session2 ; cout.width(20);
-		cout << pCurCou->teacher; cout.width(10);
+		if (!Enroll || (course.find(pCurCou->IDCou) != std::string::npos && Enroll)){
+			gotoxy (xp, size + count);
+	        cout << count;  
+	        gotoxy (xp + 5, size + count);
+			cout <<  pCurCou->IDCou;
+			gotoxy (xp + 17, size + count);
+			cout << pCurCou->nameCou;
+			gotoxy (xp + 50, size + count);
+			cout << pCurCou->credits;
+			gotoxy (xp + 59, size + count);
+			cout << pCurCou->day1;
+			gotoxy (xp + 65, size + count);
+			cout << pCurCou->session1;
+			gotoxy (xp + 75, size + count);
+			cout << pCurCou->day2; 
+			gotoxy (xp + 81, size + count);
+			cout << pCurCou->session2;
+			gotoxy (xp + 91, size + count);
+			cout << pCurCou->teacher; 
+			gotoxy (xp + 113, size + count);
         tmp = to_string(pCurCou -> enrolling) + "/" + to_string(pCurCou->maxStu);
-		cout << tmp << endl;
+			cout << tmp;
+			count ++;			
+		}
 		pCurCou = pCurCou->pNext;
-        count ++;
 	}	
+}
+
+bool RemoveEnroll (string &course, Course *&CurCou){
+	// curcou->id co trong course ko
+	int Enroll = course.length() / 3;
+	string IDCou = CurCou->IDCou;
+	string tmp = "";
+	for ( int i = 0; i < Enroll; i++)
+		if (IDCou[0] == course[i*3] && IDCou[1] == course[i*3 + 1] && IDCou[2] == course[i*3+2] )
+			CurCou->enrolling --;
+		else{
+			tmp = tmp + course[i*3] + course[i*3+1] + course[i*3+2];	
+		}
+	if (tmp == course)
+		return false;
+	course = "";
+	course = tmp;
+	return true;
 }
 //hàm dùng để check xem lịch của môn đang đăng ký có bị trùng với lịch của các
 //môn đã đăng ký không 
@@ -1144,28 +1200,76 @@ void RegisterCou(Year *&pcurYear, int orderSem, Course *pHead, Student *curStu){
         maxCourse++;
         pcur = pcur -> pNext;
     }  
+	int size = maxCourse + 6;
+	
+    while (true){
+    	PrintCourse (pcurYear, curStu->course, orderSem, 0, 0);
+    	gotoxy (xp, size);
+    	PrintCourse (pcurYear, curStu->course, orderSem, size, 1);
+    	gotoxy (xp, size + 8);
+		cout << "Press Enter to enrolled one course";
+		gotoxy (xp, size + 9);
+		cout << "Press R to remove one course you enrolled";
+		char c = '1';
+    	while ( c != 13 && c != 'R' && c != 'r')
+		    c = getch();
+	    
     int no = 0;
     while (no <= 0 || no > maxCourse){
-        system ("clear");
-        PrintCourse (pcurYear, orderSem);
-        cout << "Enter the No of the course: ";
+	    	gotoxy (xp, size + 9);
+	   		cout << "                                         ";
+	        gotoxy (xp, size + 8);
+	    	cout << "Enter the No of the course:       ";
         cin >> no;
     }
+	    
     int count = 1; 
     pcur = pHead;
     while (count != no){
         pcur = pcur -> pNext;
         count ++;
     }
-    if (pcur -> enrolling >= pcur -> maxStu || CheckScheduleCou (curStu, pcur, pHead) == true)
-        cout << "You can not enroll this course" << endl;
+	    if (c == 13)
+		    if (pcur -> enrolling >= pcur -> maxStu || CheckScheduleCou (curStu, pcur, pHead) == true || curStu->course.length() == 15){
+		    	gotoxy(xp, size + 9);
+		    	cout << "You can not enroll this course";
+			}
     else {
-        system ("cls");
         curStu -> course += pcur -> IDCou;
         pcur -> enrolling += 1;
-        PrintCourse (pcurYear, orderSem);
+		        PrintCourse (pcurYear, curStu->course, orderSem, 0, 0);
+			    gotoxy (xp, size);
+    			PrintCourse (pcurYear, curStu->course, orderSem, size, 1);
+		    	gotoxy (xp, size + 8);
+	        	cout << "Enter the No of the course: " << no;
+		        gotoxy (xp, size + 9);
         cout << "You enroll this course sucessfully";
     } 
+		else
+			if (!RemoveEnroll (curStu->course, pcur)){
+				gotoxy(xp, size + 9);
+		    	cout << "You can not remove this course because of not having enrolled it";
+			}
+			else{
+				system("cls");
+		        PrintCourse (pcurYear, curStu->course, orderSem, 0, 0);
+		        gotoxy (xp, size);
+    			PrintCourse (pcurYear, curStu->course, orderSem, size, 1);
+		    	gotoxy (xp, size + 8);
+	        	cout << "Enter the No of the course: " << no;
+		        gotoxy (xp, size + 9);
+		        cout << "You remove this course sucessfully";
+			}
+		gotoxy(xp, size + 11);
+		cout << "Press Enter to continue";
+	    gotoxy(xp, size + 12);
+	    cout << "Press ESC to exit";
+	    c = getch();
+	    if ( c == 27){
+	        exitProgram = true;
+	        return;
+		}	
+	}
 } 
 
 // Hàm dùng để nhập dữ liệu và nối liên kết giữa các biến
@@ -1381,7 +1485,7 @@ void readData (Year *&pcurYear, bool hasScore){
 	            getline(ifile, tmp, ',');
 	            pNew -> teacher = tmp;
 	            getline(ifile, tmp, ',');
-	            pNew -> enrolling = stoi (tmp.c_str());
+	            pNew -> enrolling = stoi (tmp);
 	            getline (ifile, tmp, '\n'); 
 	            pNew -> maxStu = stoi (tmp);
 	            tmp = "";
@@ -1477,6 +1581,7 @@ void readData (Year *&pcurYear, bool hasScore){
 	    }
 	    for (int i = 1; i < 4; i++)
 	        UpdateData(pcurYear, i, true, false);
+	    
 		if (pcurYear->Sem1.pHeadCou != NULL)
 			orderSem = 1;
 		if (pcurYear->Sem2.pHeadCou != NULL)
@@ -1504,7 +1609,10 @@ void Runtest(Year *pcurYear, int orderSem, Student *curStu){
             break;
 		}
 	}
+	if (isRegister)
     RegisterCou (pcurYear, orderSem, pHeadCou, curStu); 
+	else
+		PrintCourse (pcurYear, curStu->course, orderSem, 0, 1); 
 }
 
 void createSemester(Year *&pcurYear, int &orderSem){
@@ -1512,6 +1620,7 @@ void createSemester(Year *&pcurYear, int &orderSem){
 		exportCourse(pcurYear, 1);
 	if (pcurYear->Sem2.pHeadCou != NULL)
 		exportCourse(pcurYear, 2);
+		
 	system("cls");
 	cout << "\n\n\n\n\n\n";
 	cout << "        " << "Which sem do you want to create? ";
@@ -1520,6 +1629,7 @@ void createSemester(Year *&pcurYear, int &orderSem){
 	cout << "\n        " << "3 for Sem 3";
 	cout << "\n\n        ";
 	cin >> orderSem;
+	isRegister = false;
 	
 	cout << "\n\n        " << "When does the semester start? ";
 	cin.ignore();
