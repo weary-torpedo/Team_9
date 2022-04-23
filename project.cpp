@@ -105,6 +105,7 @@ void ImportOldStu(string filename, Class*& cHead);
 // Hàm import old data import 3 file data dùng khi year mới được tạo
 void ImportOldData (Year *&curYear);
 void UpdateGPA (Year *&pcurYear);
+void viewCurStuScore (Student *pStudent, int orderSem);
 void ImportClasses (Class *&pheadClass, Year *&pcurYear);
 void OutPutStu (Class *pheadClass);
 void createYear(Year *&pcurYear);
@@ -1890,6 +1891,46 @@ void UpdateGPA (Year *&pcurYear){
             curStu = curStu -> pNext;
         } 
         pcurClass = pcurClass -> pNext;
+    }
+}
+
+void viewCurStuScore (Student *pStudent, int orderSem){
+    int count = 1;
+    Score *pcurScore = pStudent -> Inclass;
+    cout << "Student: " << pStudent -> lastname << " " << pStudent -> firstname << "\t\t";
+    cout << "ID: " << pStudent -> IDStu << endl;
+    cout.width(8);
+    cout << left << "No"; cout.width (10);
+    cout <<  "ID" ; cout.width(25);
+    cout << "Name course" ; cout.width(10);
+    cout << "Midterm" ; cout.width(10);
+    cout << "Final" ; cout.width(10); 
+    cout << "Other" ; cout.width(10);
+    cout << "Total" ; cout.width(10);
+    cout << "GPA"; cout.width(20);
+    cout << endl;
+   	while (pcurScore != NULL){
+        if (pcurScore -> semester == orderSem){
+            cout.width(8);
+            cout << left << count;  cout.width(10);
+            cout << pcurScore-> CouID; cout.width(25);
+            cout << pcurScore-> CouName; cout.width(10);
+            cout << pcurScore-> Mid; cout.width(10);
+            cout << pcurScore-> Final; cout.width(15);
+            cout << pcurScore-> Other; cout.width(10);
+            cout << pcurScore-> Total; cout.width(15);
+            cout << pcurScore-> GPA; cout.width(20);
+            cout << endl;
+            count ++;
+        }
+        pcurScore = pcurScore -> pNext;
+	} 
+    if (count == 1){
+        system ("cls");
+        cout << "You haven't enrolled for any course" << endl;
+    }
+    else {
+        cout << "GPA of semester  " << orderSem << ": "  << pStudent -> GPA[orderSem - 1] << endl;
     }
 }
 
