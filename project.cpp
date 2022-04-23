@@ -30,6 +30,7 @@ struct Score {
 struct Student{
 	int No, IDSocial;
 	string firstname, lastname,gender, date, IDStu, course;
+    float GPA[4];
     Score *Inclass;
 	Student* pNext;
 };
@@ -79,7 +80,7 @@ void Runtest (Year *pcurYear, int sem, Student *curStu);
 //dùng khi mới kết thúc đăng ký học phần và mới khởi động lại chương trình
 //biến bool createdScore dùng để biết là có tạo điểm hay không, nếu là kết thúc
 //đăng ký học phần thì biến này là true còn không thì là false
-void UpdateData (Year *&pCurYear, int semester, bool yearCreated, bool createScore);
+void UpdateData (Year *&pCurYear, int semester, bool yearCreated, bool &createScore);
 // Hàm export data dùng để lưu lại các data hiện có khi thoát chương trình
 // Hàm cần truyền vào biến bool Course Register kết thúc chưa
 void ExportData (Year *&curYear, bool couRegistEnd);
@@ -103,6 +104,7 @@ void ImportNewStu (string filename,  Class *curClass);
 void ImportOldStu(string filename, Class*& cHead);
 // Hàm import old data import 3 file data dùng khi year mới được tạo
 void ImportOldData (Year *&curYear);
+void UpdateGPA (Year *&pcurYear);
 void ImportClasses (Class *&pheadClass, Year *&pcurYear);
 void OutPutStu (Class *pheadClass);
 void createYear(Year *&pcurYear);
@@ -1275,7 +1277,7 @@ void RegisterCou(Year *&pcurYear, int orderSem, Course *pHead, Student *curStu){
 // Hàm dùng để nhập dữ liệu và nối liên kết giữa các biến
 // dùng khi khởi động lại chương trình, khi kết thúc đăng ký học phần
 // khi kết thúc đăng ký học phần cần kèm thêm điều kiện đã kết thúc học phần
-void UpdateData (Year *&pCurYear, int semester, bool yearCreated, bool createScore){
+void UpdateData (Year *&pCurYear, int semester, bool yearCreated, bool &createScore){
     if (yearCreated == false)
         return;
     Course *pHeadCou;
@@ -1360,6 +1362,8 @@ void UpdateData (Year *&pCurYear, int semester, bool yearCreated, bool createSco
         }
         pCurClass = pCurClass -> pNext;
     }             
+    if (createScore == true)
+        createScore = false;
 }             
 
 void ExportData (Year *&curYear, bool couRegistEnd){
@@ -1713,8 +1717,10 @@ void ImportNewStu (string filename,  Class *curClass){
             pcur -> gender = tmp;
             getline (ifile, tmp,',');
             pcur -> date = tmp;
-            getline (ifile, tmp,'\n');
+            getline (ifile, tmp,',');
             pcur -> IDSocial = stoi (tmp.c_str());
+            getline (ifile, tmp, '\n');
+            pcur -> course = tmp;
             pcur -> pNext = nullptr;
             getline (ifile,tmp, ',');
         }
@@ -1764,8 +1770,10 @@ void ImportOldStu(string filename, Class*& cHead) {
                 pcur->gender = tmp;
                 getline(ifile, tmp, ',');
                 pcur->date = tmp;         
-                getline(ifile, tmp, '\n');
+                getline(ifile, tmp, ',');
                 pcur->IDSocial = stoi(tmp.c_str());
+                getline (ifile, tmp, '\n');
+                pcur -> course = tmp;
                 getline(ifile, tmp, ',');
             }
             if (!cHead)
@@ -1838,6 +1846,51 @@ void ImportOldData (Year *&curYear){
     curYear->pHeadClass = NULL;
     for (int i = 4; i > 1; i--)
     	ImportOldStu (tmp + to_string(i) + ".csv", curYear -> pHeadClass);
+}
+
+void UpdateGPA (Year *&pcurYear){
+    Class *pcurClass = pcurYear -> pHeadClass;
+    Student *curStu;
+    Score *curScore;
+    float *sum = new float [3];
+    int *count = new int [3];
+    // sum để tổng các GPA của mỗi môn lại
+    // count để đếm số môn 
+    float tmp;
+    while (pcurClass != nullptr){
+        curStu = pcurClass -> pHeadStu;
+        for (int i = 0; i < pcurClass -> numberOfStu; i++){
+            curScore = curStu -> Inclass;
+            sum[0] = sum[1] = sum[2] = 0;
+            count[0] = count[1] = count[2] = 0;
+            while (curScore != nullptr){
+                if (curScore -> Total >= 9)
+                    curScore -> GPA = 4;
+                else if (curScore -> Total >= 8)
+                    curScore -> GPA = 3.5;
+                else if (curScore -> Total >= 7)
+                    curScore -> GPA = 3;
+                else if (curScore -> Total >= 6)
+                    curScore -> GPA = 2.5;
+                else if (curScore -> Total >= 5)
+                    curScore -> GPA = 2;
+                else if (curScore -> Total >= 4)
+                    curScore -> GPA = 1;
+                else curScore -> GPA = 0;
+                curScore = curScore -> pNext;
+                sum[curScore -> semester -1] += curScore -> GPA;
+                count[curScore -> semester -1] += 1;
+            }
+            tmp = 0;
+            for (int j = 0; j < 3; j++){
+                curStu -> GPA[j] = round(sum[j]/count[j]*10)/10;
+                tmp += round(sum[j]/count[j]*10)/10;
+            }
+            curStu -> GPA[3] = round(tmp/3*10)/10;
+            curStu = curStu -> pNext;
+        } 
+        pcurClass = pcurClass -> pNext;
+    }
 }
 
 void createYear(Year *&pcurYear){	
