@@ -106,6 +106,7 @@ void ImportOldStu(string filename, Class*& cHead);
 void ImportOldData (Year *&curYear);
 void UpdateGPA (Year *&pcurYear);
 void viewCurStuScore (Student *pStudent, int orderSem);
+void viewClassScore (Class *pcurClass);
 void ImportClasses (Class *&pheadClass, Year *&pcurYear);
 void OutPutStu (Class *pheadClass);
 void createYear(Year *&pcurYear);
@@ -1931,6 +1932,36 @@ void viewCurStuScore (Student *pStudent, int orderSem){
     }
     else {
         cout << "GPA of semester  " << orderSem << ": "  << pStudent -> GPA[orderSem - 1] << endl;
+    }
+}
+
+void viewClassScore (Class *pcurClass){
+    Student *curStu = pcurClass -> pHeadStu;
+    Score *curScore;
+    cout << "Class: " << pcurClass -> className << endl;
+    cout.width(8);
+    cout << left << "No"; cout.width (25);
+    cout << "Student name"; cout.width(15);
+    cout <<  "ID" ; cout.width(15);
+    for (int i = 0; i < 5; i++){
+        cout << "Course ID" ; cout.width(10);
+        cout << "Total" ; cout.width(10);
+        cout << "GPA" ; cout.width(15); 
+    }
+    cout << endl;
+    for (int i = 0; i < pcurClass -> numberOfStu; i++){
+        cout.width(8);
+        cout << left << i+1; cout.width (25);
+        cout << curStu -> lastname << " " << curStu -> firstname; cout.width(15);
+        cout <<  curStu -> IDStu ; cout.width(15);
+        while (curScore != nullptr){
+            cout << curScore -> CouID; cout.width(15);
+            cout << curScore -> Total; cout.width(10);
+            cout << curScore -> GPA; cout.width(10); 
+            curScore = curScore -> pNext;
+        }   
+        cout << endl;
+        curStu = curStu -> pNext;
     }
 }
 
