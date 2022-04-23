@@ -129,8 +129,7 @@ int main(){
 		gotoxy(20,20);
 		string username =  loginSystem();
 		Student* pStudent;
-		if ('2' <= username[0] && username[0] <= '9')
-			pStudent = afterLog(username,pcurYear);
+		pStudent = afterLog(username,pcurYear);
 		homePage(pStudent, username);
 		int time;
 		
@@ -258,6 +257,7 @@ void listStuofClass(Year* pcurYear, int orderClass){
 }
 
 void exportCourseToTeacher(Year* pcurYear, int orderSem, int orderCou){
+	system("cls");
 	Course* pCurCou;
 	switch(orderSem){
 		case 1:
@@ -1596,13 +1596,13 @@ void ImportNewStu (string filename,  Class *curClass){
             getline (ifile, tmp, ',');
             pcur -> IDStu = tmp;
             getline (ifile, tmp,',');
-            pcur -> firstname = tmp.erase(0,1);
+            pcur -> firstname = tmp;
             getline (ifile, tmp,',');
-            pcur -> lastname = tmp.erase(0,1);
+            pcur -> lastname = tmp;
             getline (ifile, tmp,',');
-            pcur -> gender = tmp.erase(0,1);
+            pcur -> gender = tmp;
             getline (ifile, tmp,',');
-            pcur -> date = tmp.erase(0,1);
+            pcur -> date = tmp;
             getline (ifile, tmp,'\n');
             pcur -> IDSocial = stoi (tmp.c_str());
             pcur -> pNext = nullptr;
@@ -1645,15 +1645,15 @@ void ImportOldStu(string filename, Class*& cHead) {
                 else curClass->pHeadStu = pcur;
                 pcur->No = stoi(tmp.c_str());
                 getline(ifile, tmp, ',');
-                pcur->IDStu = tmp.erase(0, 1);
+                pcur->IDStu = tmp;
                 getline(ifile, tmp, ',');
-                pcur->firstname = tmp.erase(0, 1);
+                pcur->firstname = tmp;
                 getline(ifile, tmp, ',');
-                pcur->lastname = tmp.erase(0, 1);
+                pcur->lastname = tmp;
                 getline(ifile, tmp, ',');
-                pcur->gender = tmp.erase(0, 1);
+                pcur->gender = tmp;
                 getline(ifile, tmp, ',');
-                pcur->date = tmp.erase(0, 1);         
+                pcur->date = tmp;         
                 getline(ifile, tmp, '\n');
                 pcur->IDSocial = stoi(tmp.c_str());
                 getline(ifile, tmp, ',');
@@ -1872,10 +1872,10 @@ void viewProfile(Student *pStu){
 	cout << "\n\n";
 	cout << "     Fullname: " << pStu->lastname << " " << pStu->firstname << "\n\n";
 	cout << "     ID: " << pStu->IDStu << "\n\n";
-	cout << "     Social ID: " << "\n\n";
-	cout << "     Gender: " << "\n\n";
-	cout << "     Date of birth: " << "\n\n";
-	cout << "\n\n\n\n";
+	cout << "     Social ID: " << pStu->IDSocial << "\n\n";
+	cout << "     Gender: " << pStu->gender << "\n\n";
+	cout << "     Date of birth: " << pStu->date << "\n\n";
+	cout << "\n\n\n";
 	cout << "     PRESS ENTER TO GO BACK...";
 	getch();
 }
@@ -1977,6 +1977,7 @@ Student* afterLog(string username, Year* pcurYear){
 		}
 		pClass = pClass->pNext;
 	}
+	return NULL;
 }
 
 string loginSystem(){
