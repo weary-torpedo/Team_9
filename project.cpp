@@ -86,7 +86,7 @@ void UpdateData (Year *&pCurYear, int semester, bool yearCreated);
 void ExportData (Year *&curYear);
 void readData (Year *&pcurYear);
 
-void staffScore(Year* pcurYear, int orderSem);
+void staffScore(Year* &pcurYear, int orderSem);
 void listClass(Year* pcurYear, int &soluong);
 void staffSee(Year *&pcurYear, int orderSem);
 
@@ -492,10 +492,43 @@ void viewCourseScore(Course* pCurCou){
 		gotoxy(xp + 98,5 + 1 + i);
 		cout << pCur->GPA;		
 	}
-	getch();
 }
 
-void staffScore(Year* pcurYear, int orderSem){
+void UpdateScore(Score* &pCur, int choose){
+	float newScore;
+	cout << "Enter the new Score: ";
+	cin >> newScore;
+	if(choose == 1)
+		pCur->Mid = newScore;
+	if(choose == 2)
+		pCur->Final = newScore;
+	if(choose == 3)
+		pCur->Other = newScore;
+	if(choose == 4){
+		pCur->Total = newScore;
+		if(pCur->Total >= 0 && pCur->Total <= 2.9)
+			pCur->GPA = 0.0;
+		if(pCur->Total >= 3.0 && pCur->Total <= 3.9)
+			pCur->GPA = 0.5;
+		if(pCur->Total >= 4.0 && pCur->Total <= 4.7)
+			pCur->GPA = 1.0;
+		if(pCur->Total >= 4.8 && pCur->Total <= 5.4)
+			pCur->GPA = 1.5;
+		if(pCur->Total >= 5.5 && pCur->Total <= 6.2)
+			pCur->GPA = 2.0;
+		if(pCur->Total >= 6.3 && pCur->Total <= 6.9)
+			pCur->GPA = 2.5;
+		if(pCur->Total >= 7.0 && pCur->Total <= 7.7)
+			pCur->GPA = 3.0;
+		if(pCur->Total >= 7.8 && pCur->Total <= 8.4)
+			pCur->GPA = 3.5;
+		if(pCur->Total >= 8.5 && pCur->Total <= 10.0)
+			pCur->GPA = 4.0;
+	}
+	return;
+}
+
+void staffScore(Year* &pcurYear, int orderSem){
 	UpdateGPA (pcurYear);
 	Course* pHeadCou;
 	switch(orderSem){
@@ -576,10 +609,53 @@ void staffScore(Year* pcurYear, int orderSem){
 				if (c1 == 'B' || c1 == 'b')
 					break;
 				else if (c1 == 13){
-					Course* pCurCou = pHeadCou;
-					for(int i =0; i < orderCou; i++)
-						pCurCou = pCurCou->pNext;
-					viewCourseScore(pCurCou);
+					while(true){
+						Course* pCurCou = pHeadCou;
+						for(int i =0; i < orderCou; i++)
+							pCurCou = pCurCou->pNext;
+						viewCourseScore(pCurCou);
+						printBox("Press B to back",xp,12 + pCurCou->enrolling,25);
+						gotoxy(xp,8+pCurCou->enrolling);
+						cout << "Move arrow keys and enter to choose a student,";
+						gotoxy(xp,9+pCurCou->enrolling);
+						cout << "then you can update the student's score.";
+						char c2 ='1';
+						int orderStu = 0;
+						gotoxy(3,6);
+						while(c2 != 13 && c2 != 'B' && c2 != 'b'){
+							c2 = getch();
+							if (c2 == 72 && orderStu > 0){ // len
+								orderStu --;
+								gotoxy (3,6 + orderStu);
+							}
+							else if (c1 == 80 && orderStu < pCurCou->enrolling ){ // xuong
+								orderStu ++;
+								gotoxy (3,6 + orderStu);	
+							}
+						}
+						if(c2 == 'B' || c2 == 'b')
+							break;
+						if(c2 == 13){
+							int ch;
+							gotoxy(xp,15+pCurCou->enrolling);
+							cout << "1: update midterm mark.";
+							gotoxy(xp,16+pCurCou->enrolling);
+							cout << "2: update final mark.";
+							gotoxy(xp,17+pCurCou->enrolling);
+							cout << "3: update other mark.";
+							gotoxy(xp,18+pCurCou->enrolling);
+							cout << "4: update total mark.";
+							gotoxy(xp,19+pCurCou->enrolling);
+							cout << "Enter your choose: ";
+							cin >> ch;
+							Score* pCur = pCurCou->Stu[orderStu]->Inclass;
+							while(pCur->CouID != pCurCou->IDCou)
+								pCur = pCur->pNext;
+							gotoxy(xp,20+pCurCou->enrolling);
+							UpdateScore(pCur,ch);
+						}
+					}
+
 				}		
 			}
 		else if ( c == '2')
@@ -1888,21 +1964,21 @@ void readData (Year *&pcurYear){
 	                            curScore -> pNext = nullptr;
 	                        }
 	                        getline(ifile, tmp, ',');
-	                        curScore -> semester = stoi (tmp);
+	                        curScore -> semester = stof(tmp);
 	                        getline (ifile, tmp, ',');
 	                        curScore -> CouID = tmp;
 	                        getline (ifile, tmp, ',');
-	                        curScore -> Mid = stoi (tmp);
+	                        curScore -> Mid = stof(tmp);
 	                        getline (ifile, tmp, ',');
-	                        curScore -> Final = stoi (tmp);
+	                        curScore -> Final = stof(tmp);
 	                        getline (ifile, tmp, ',');
-	                        curScore -> Total = stoi (tmp);
+	                        curScore -> Total = stof(tmp);
 	                        getline (ifile, tmp, ',');
-	                        curScore -> Other = stoi (tmp);
+	                        curScore -> Other = stof(tmp);
 	                        if (j != end -1)
 	                            getline (ifile, tmp, ',');
 	                        else getline (ifile, tmp, '\n');
-	                        curScore -> GPA = stoi (tmp);
+	                        curScore -> GPA = stof(tmp);
 	                    }
 	                    curScore = nullptr;
 	                }
