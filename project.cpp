@@ -76,15 +76,15 @@ void PrintCourse (Year *pCurYear, int semester);
 void RegisterCou(Year *&pcurYear, int sem, Course *pHead, Student *curStu);
 bool CheckScheduleCou (Student *curStu, Course *curEnroll, Course *pHead);
 void Runtest (Year *pcurYear, int sem, Student *curStu);
-//hàm update data được dùng để liên kết các dữ liệu lại
-//dùng khi mới kết thúc đăng ký học phần và mới khởi động lại chương trình
-//biến bool createdScore dùng để biết là có tạo điểm hay không, nếu là kết thúc
-//đăng ký học phần thì biến này là true còn không thì là false
-void UpdateData (Year *&pCurYear, int semester, bool yearCreated, bool &createScore);
-// Hàm export data dùng để lưu lại các data hiện có khi thoát chương trình
-// Hàm cần truyền vào biến bool Course Register kết thúc chưa
-void ExportData (Year *&curYear, bool couRegistEnd);
-void readData (Year *&pcurYear, bool hasScore);
+//h�m update data du?c d�ng d? li�n k?t c�c d? li?u l?i
+//d�ng khi m?i k?t th�c dang k� h?c ph?n v� m?i kh?i d?ng l?i chuong tr�nh
+//bi?n bool createdScore d�ng d? bi?t l� c� t?o di?m hay kh�ng, n?u l� k?t th�c
+//dang k� h?c ph?n th� bi?n n�y l� true c�n kh�ng th� l� false
+void UpdateData (Year *&pCurYear, int semester, bool yearCreated);
+// H�m export data d�ng d? luu l?i c�c data hi?n c� khi tho�t chuong tr�nh
+// H�m c?n truy?n v�o bi?n bool Course Register k?t th�c chua
+void ExportData (Year *&curYear);
+void readData (Year *&pcurYear);
 
 void staffScore(Year* pcurYear, int orderSem);
 void listClass(Year* pcurYear, int &soluong);
@@ -100,9 +100,9 @@ void createCourseRegister(Year *&pCurYear, int &orderSem);
 void createSemester(Year *&pCurYear, int &orderSem);
 Class* CreateClass(Class*& phead, string tmp, Year*& curyear);
 void ImportNewStu (string filename,  Class *curClass);
-// hàm importOldStu import 1 file data.
+// h�m importOldStu import 1 file data.
 void ImportOldStu(string filename, Class*& cHead);
-// Hàm import old data import 3 file data dùng khi year mới được tạo
+// H�m import old data import 3 file data d�ng khi year m?i du?c t?o
 void ImportOldData (Year *&curYear);
 void UpdateGPA (Year *&pcurYear);
 void viewCurStuScore (Student *pStudent, int orderSem);
@@ -330,12 +330,15 @@ void exportCourseToTeacher(Year* pcurYear, int orderSem, int orderCou){
 	fout << "NO,ID,NAME,MIDTERM MARK,FINAL MARK,TOTAL MARK,OTHER MARK" << endl;
 	for ( int i = 0; i < pCurCou->enrolling; i++){
 		Score* pCur = pCurCou->Stu[i]->Inclass;
-		while(pCur->CouID != pCurCou->IDCou)
+		while(pCur && pCur->CouID != pCurCou->IDCou)
 			pCur = pCur->pNext;
 		fout << i + 1 << ",";
 		fout << pCurCou->Stu[i]->IDStu << ",";
 		fout << pCurCou->Stu[i]->lastname << " ";
 		fout << pCurCou->Stu[i]->firstname << ",";
+//		if (!pCur)
+//			fout << "+,";
+//		else{
 		if(pCur->Mid != -1)
 			fout << pCur->Mid << ",";
 		else 
@@ -438,6 +441,60 @@ void importCourseScore(Year* pcurYear,int orderSem,string filename){
 	return;
 }
 
+void viewCourseScore(Course* pCurCou){
+	system("cls");
+	string tmp = "Bang diem mon ";
+	tmp += pCurCou->nameCou;
+	printBox(tmp,20,1,50);
+	gotoxy(xp,5);
+	cout << "No";
+	gotoxy(xp + 10,5);
+	cout << "Student's name";
+	gotoxy(xp + 35,5);
+	cout << "Midterm Mark";
+	gotoxy(xp + 53,5);
+	cout << "Final Mark";
+	gotoxy(xp + 68,5);
+	cout << "Other Mark";
+	gotoxy(xp + 83,5);
+	cout << "Total Mark";
+	gotoxy(xp + 98,5);
+	cout << "GPA";
+	for(int i = 0; i < pCurCou->enrolling; i++){
+		Score* pCur = pCurCou->Stu[i]->Inclass;
+		while(pCur->CouID != pCurCou->IDCou)
+			pCur = pCur->pNext;
+		gotoxy(xp,5 + 1 + i);
+		cout << i + 1 << ')';
+		gotoxy(xp + 10,5 + 1 + i);
+		cout << pCurCou->Stu[i]->lastname << " ";
+		cout << pCurCou->Stu[i]->firstname;
+		gotoxy(xp + 40,5 + 1 + i);
+		if(pCur->Mid != -1)
+			cout << pCur->Mid;
+		else	
+			cout << '-';
+		gotoxy(xp + 57,5 + 1 + i);
+		if(pCur->Final != -1)
+			cout << pCur->Final;
+		else	
+			cout << '-';
+		gotoxy(xp + 72,5 + 1 + i);
+		if(pCur->Other != -1)
+			cout << pCur->Other;
+		else	
+			cout << '-';
+		gotoxy(xp + 87,5 + 1 + i);
+		if(pCur->Total != -1)
+			cout << pCur->Total;
+		else	
+			cout << '-';
+		gotoxy(xp + 98,5 + 1 + i);
+		cout << pCur->GPA;		
+	}
+	getch();
+}
+
 void staffScore(Year* pcurYear, int orderSem){
 	UpdateGPA (pcurYear);
 	Course* pHeadCou;
@@ -518,8 +575,12 @@ void staffScore(Year* pcurYear, int orderSem){
 				
 				if (c1 == 'B' || c1 == 'b')
 					break;
-				else if (c1 == 13)
-					getch();
+				else if (c1 == 13){
+					Course* pCurCou = pHeadCou;
+					for(int i =0; i < orderCou; i++)
+						pCurCou = pCurCou->pNext;
+					viewCourseScore(pCurCou);
+				}		
 			}
 		else if ( c == '2')
 			while(true){
@@ -1288,9 +1349,9 @@ void createCourseRegister(Year *&pcurYear, int &orderSem){
 		}
 	}
 }
-//Hàm dùng in danh sách các khóa học ra console cho học sinh chọn
-//Sau khi chọn xong dùng lại hàm này sẽ cập nhập số lượng học sinh đang đăng ký
-//khóa học
+//H�m d�ng in danh s�ch c�c kh�a h?c ra console cho h?c sinh ch?n
+//Sau khi ch?n xong d�ng l?i h�m n�y s? c?p nh?p s? lu?ng h?c sinh dang dang k�
+//kh�a h?c
 
 bool string_in_string (string str1, string str2){
 	for ( int i = 0; i < str1.length() / 3; i++)
@@ -1405,8 +1466,8 @@ bool RemoveEnroll (string &course, string no, Course *pHead){
 	course = tmp;
 	return true;
 }
-//hàm dùng để check xem lịch của môn đang đăng ký có bị trùng với lịch của các
-//môn đã đăng ký không 
+//h�m d�ng d? check xem l?ch c?a m�n dang dang k� c� b? tr�ng v?i l?ch c?a c�c
+//m�n d� dang k� kh�ng 
 bool CheckScheduleCou (Student *curStu, Course *curEnroll, Course *pHead){
     string *Enrolled = new string [5];
     int count = 0, j = 0;
@@ -1440,7 +1501,7 @@ bool CheckScheduleCou (Student *curStu, Course *curEnroll, Course *pHead){
     }
     return false;
 }
-// hàm dùng để lấy nhận từ bàn phím số No của course và trả về course
+// h�m d�ng d? l?y nh?n t? b�n ph�m s? No c?a course v� tr? v? course
 void RegisterCou(Year *&pcurYear, int orderSem, Course *pHead, Student *curStu){
     int maxCourse = 0;
     Course *pcur = pHead;
@@ -1531,10 +1592,10 @@ void RegisterCou(Year *&pcurYear, int orderSem, Course *pHead, Student *curStu){
 	}
 } 
 
-// Hàm dùng để nhập dữ liệu và nối liên kết giữa các biến
-// dùng khi khởi động lại chương trình, khi kết thúc đăng ký học phần
-// khi kết thúc đăng ký học phần cần kèm thêm điều kiện đã kết thúc học phần
-void UpdateData (Year *&pCurYear, int semester, bool yearCreated, bool &createScore){
+// H�m d�ng d? nh?p d? li?u v� n?i li�n k?t gi?a c�c bi?n
+// d�ng khi kh?i d?ng l?i chuong tr�nh, khi k?t th�c dang k� h?c ph?n
+// khi k?t th�c dang k� h?c ph?n c?n k�m th�m di?u ki?n d� k?t th�c h?c ph?n
+void UpdateData (Year *&pCurYear, int semester, bool yearCreated){
     if (yearCreated == false)
         return;
     Course *pHeadCou;
@@ -1556,22 +1617,22 @@ void UpdateData (Year *&pCurYear, int semester, bool yearCreated, bool &createSc
         return;
     }
     Course *pCurCou = pHeadCou;
-    // tạo dynamic array của student trong course dựa trên số lượng enrolling
+    // t?o dynamic array c?a student trong course d?a tr�n s? lu?ng enrolling
     while (pCurCou != nullptr){
         pCurCou -> Stu = new Student *[pCurCou -> enrolling];
         pCurCou = pCurCou -> pNext;
     }
     Class *pCurClass = pCurYear -> pHeadClass;
     Student *pCurStu;
-    // k dùng để dò xem course đã cập nhật được bao nhiêu học sinh rồi
+    // k d�ng d? d� xem course d� c?p nh?t du?c bao nhi�u h?c sinh r?i
     int k;
     pCurCou = pHeadCou;
     int length = strlen (pCurCou -> IDCou.c_str());
     Score *curScore;
-    // length là độ dài được quy định của tên course
-    // vòng lặp được chạy qua từng học sinh và dò course mà các học sinh đó đã
-    // đăng ký, nếu tên course đăng ký trùng với tên course có sẵn thì pointer
-    // của học sinh sẽ được cập nhật trong course
+    // length l� d? d�i du?c quy d?nh c?a t�n course
+    // v�ng l?p du?c ch?y qua t?ng h?c sinh v� d� course m� c�c h?c sinh d� d�
+    // dang k�, n?u t�n course dang k� tr�ng v?i t�n course c� s?n th� pointer
+    // c?a h?c sinh s? du?c c?p nh?t trong course
     while (pCurClass != nullptr){
         pCurStu = pCurClass -> pHeadStu;
       //  cout << pCurClass->className << endl;
@@ -1592,7 +1653,7 @@ void UpdateData (Year *&pCurYear, int semester, bool yearCreated, bool &createSc
                 if (pCurCou == nullptr)
                     continue;
 
-                // tạo score
+                // t?o score
                 if (hasScore == false && registerBegin && registerEnd){
                     if (pCurStu -> Inclass == nullptr) {
                         curScore = new Score;
@@ -1612,7 +1673,7 @@ void UpdateData (Year *&pCurYear, int semester, bool yearCreated, bool &createSc
                     curScore -> Total = -1;
                     curScore -> semester = semester;
                 }
-                // chạy tới cuối danh sách học sinh trong courses
+                // ch?y t?i cu?i danh s�ch h?c sinh trong courses
                 k = 0;
                 while (pCurCou -> Stu[k] != '\0')
                     k++;
@@ -1642,7 +1703,7 @@ void ExportData (Year *&curYear){
             count ++;
         }
         pcurCou = pHeadCou[i];
-        // Xuất danh học kì và số lượng course trước rồi mới xuất danh sách các course
+        // Xu?t danh h?c k� v� s? lu?ng course tru?c r?i m?i xu?t danh s�ch c�c course
         ofile << i+1 << "," << count << endl;
         while (pcurCou != nullptr){
             ofile << pcurCou -> IDCou << ",";
@@ -1663,10 +1724,10 @@ void ExportData (Year *&curYear){
     int length = strlen (pHeadCou[0] -> IDCou.c_str());
     Student *pcurStu;
     Score *pcurScore;
-    // Xuất tên class và số lượng học sinh trong class trước
-    // Trong mỗi class sẽ xuất các thông tin cụ thể của mỗi học sinh
-    // Các thông tin đó gồm STT, MSSV, Tên, Họ, Giới Tính, Ngày Sinh, CMND,
-    // Course và Score nếu có
+    // Xu?t t�n class v� s? lu?ng h?c sinh trong class tru?c
+    // Trong m?i class s? xu?t c�c th�ng tin c? th? c?a m?i h?c sinh
+    // C�c th�ng tin d� g?m STT, MSSV, T�n, H?, Gi?i T�nh, Ng�y Sinh, CMND,
+    // Course v� Score n?u c�
     while (pcurClass != nullptr){
         ofile << pcurClass -> className << "," << pcurClass -> numberOfStu << endl;
         pcurStu = pcurClass -> pHeadStu;
