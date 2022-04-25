@@ -7,7 +7,7 @@
 #include <iomanip>
 using namespace std;
 
-#define xp 8 // xp (x pointer) means the place ( at console) we use gotoxy to print box
+#define xp 8
 
 struct NodePass{
     string user,pass;
@@ -72,51 +72,65 @@ string startDateRegister, endDateRegister;
 bool logOut, registerEnd, registerBegin, exitProgram, hasScore;
 int orderSem, soluong;
 
-void listStuOfCou (Year *&pcurYear, int &orderSem, int orderCou, bool print);
-void PrintCourse (Year *pCurYear, int semester);
-void RegisterCou(Year *&pcurYear, int sem, Course *pHead, Student *curStu);
-bool CheckScheduleCou (Student *curStu, Course *curEnroll, Course *pHead);
-void Runtest (Year *pcurYear, int sem, Student *curStu);
-void UpdateData (Year *&pCurYear, int semester, bool yearCreated);
-void ExportData (Year *&curYear);
-void readData (Year *&pcurYear);
-void writeNewStu (Year *pcurYear);
 
+void exportCourse(Year *pCurYear, int orderSem);		
+void viewCurStuScore (Course *pHeadCou, Student *pStudent, int orderSem);
+void viewClassScore (Class *pcurClass);
+void UpdateScore(Score* &pCur, int choose);
+void viewCourseScore(Course* pCurCou);
+void exportCourseToTeacher(Year* pcurYear, int orderSem, int orderCou);
+void importCourseScore(Year* pcurYear,int orderSem,string filename);
+void UpdateGPA (Year *&pcurYear);
 void staffScore(Year* &pcurYear, int orderSem);
+
+void listStuOfCou (Year *&pcurYear, int &orderSem, int orderCou, bool print);
 void listClass(Year* pcurYear, int &soluong);
+void listStuofClass(Year* pcurYear, int orderClass);
 void staffSee(Year *&pcurYear, int orderSem);
 
-void createCourseCSV(Year *&pCurYear, int orderSem);
+bool activeCourseRegister(Year *&pcurYear);
+void createCourseCSV(string filename, Year *&pCurYear, int orderSem);
 void createCourse(Year *&pCurYear, int orderSem);
 void editCourse(Year *&pCurYear, int orderSem, int orderCou);
 void deleteCourse(Year *&pCurYear, int orderSem, int orderCou);
-void exportCourse(Year *pCurYear, int orderSem);
 void listCourse(Year *pCurYear, int orderSem, int &soluong);
-void createCourseRegister(Year *&pCurYear, int &orderSem);
-void createSemester(Year *&pCurYear, int &orderSem);
+void createCourseRegister(Year *&pcurYear, int &orderSem);
+
+bool string_in_string (string str1, string str2);
+void PrintCourse (Year *pCurYear, string course, int orderSem, int size, bool Enroll);
+bool RemoveEnroll (string &course, string no, Course *pHead);
+bool CheckScheduleCou (Student *curStu, Course *curEnroll, Course *pHead);
+void RegisterCou(Year *&pcurYear, int orderSem, Course *pHead, Student *curStu);
+void Runtest(Year *pcurYear, int orderSem, Student *curStu);
+
+void createSemester(Year *&pcurYear, int &orderSem);
+void OutPutStu (Class *pheadClass);
 Class* CreateClass(Class*& phead, string tmp, Year*& curyear);
 void ImportNewStu (string filename,  Class *curClass);
 void ImportOldStu(string filename, Class*& cHead);
-void ImportOldData (Year *&curYear);
-void UpdateGPA (Year *&pcurYear);
-void viewCurStuScore (Student *pStudent, int orderSem);
-void viewClassScore (Class *pcurClass);
 void ImportClasses (Class *&pheadClass, Year *&pcurYear);
-void OutPutStu (Class *pheadClass);
+void ImportOldData (Year *&curYear);
 void createYear(Year *&pcurYear);
 void staffCreate(Year *&pcurYear, int &orderSem);
-int checkTime();
+
 void changePass(string username);
 void viewProfile(Student *pStu);
 void homePage(Student *pStu, string username);
 
-void gotoxy(int x, int y);
-void printBox(string text, int x, int y, int size);
-void box(int x, int y, int w, int h);
+int checkTime();
 bool loginCheck(string username, string password);
 Student* afterLog(string username, Year* pcurYear);
 string loginSystem();
+
+void box(int x, int y, int w, int h);
+void gotoxy(int x, int y);
+void printBox(string text, int x, int y, int size);
 void HCMUS();
+
+void writeNewStu (Year *pcurYear);
+void ExportData (Year *&curYear);
+void UpdateData (Year *&pCurYear, int semester, bool yearCreated);
+void readData (Year *&pcurYear);
 
 int main(){
 	Year *pcurYear;
@@ -150,74 +164,94 @@ int main(){
 	return 0;
 }
 
-void UpdateGPA (Year *&pcurYear){
-    Class *pcurClass = pcurYear -> pHeadClass;
-    Student *curStu;
-    Score *curScore;
-    float *sum = new float [3];
-    int *count = new int [3];
-    float tmp;
-    bool calculate;
-    while (pcurClass != nullptr){
-        curStu = pcurClass -> pHeadStu;
-        for (int i = 0; i < pcurClass -> numberOfStu; i++){
-            curScore = curStu -> Inclass;
-            sum[0] = sum[1] = sum[2] = 0;
-            count[0] = count[1] = count[2] = 0;
-            while (curScore != nullptr){
-            	cout << i << " ";
-                if (curScore -> Total >= 9)
-                    curScore -> GPA = 4;
-                else if (curScore -> Total >= 8)
-                    curScore -> GPA = 3.5;
-                else if (curScore -> Total >= 7)
-                    curScore -> GPA = 3;
-                else if (curScore -> Total >= 6)
-                    curScore -> GPA = 2.5;
-                else if (curScore -> Total >= 5)
-                    curScore -> GPA = 2;
-                else if (curScore -> Total >= 4)
-                    curScore -> GPA = 1;
-                else curScore -> GPA = 0;
-                sum[curScore -> semester -1] += curScore -> GPA;
-                count[curScore -> semester -1] += 1;
-                curScore = curScore -> pNext;
+void exportCourse(Year *pCurYear, int orderSem){
+	fstream FILE;
+	Course *pHeadCou;
+	switch (orderSem){
+		case 1:{
+			pHeadCou = pCurYear->Sem1.pHeadCou;
+			FILE.open(to_string(pCurYear->start) + "Sem1.csv",ios::out);
+			break;
 		}
-            tmp = 0;
-            calculate = true;
-            for (int j = 0; j < 3; j++){
-                if (count [j] != 0){
-                    curStu -> GPA[j] = round(sum[j]/count[j]*10)/10;
-                    tmp += round(sum[j]/count[j]*10)/10;
+		case 2:{
+			pHeadCou = pCurYear->Sem2.pHeadCou;
+			FILE.open(to_string(pCurYear->start) + "Sem2.csv",ios::out);
+			break;
 		}
-                else {
-                    calculate = false;
-                    curStu -> GPA[j] = -1;
-                }
-            }
-            if (calculate == true)
-                curStu -> GPA[3] = round(tmp/3*10)/10;
-            else curStu -> GPA[3] = -1; 
-            curStu = curStu -> pNext;
-        } 
-        pcurClass = pcurClass -> pNext;
+		case 3:{
+			pHeadCou = pCurYear->Sem3.pHeadCou;
+			FILE.open(to_string(pCurYear->start) + "Sem3.csv",ios::out);
 		}
 	}
+		
+	Course *pCurCou = pHeadCou;
+	while (pCurCou != NULL){
+		FILE << pCurCou->IDCou << ",";
+		FILE << pCurCou->nameCou << ",";
+		FILE << pCurCou->credits << ",";
+		FILE << pCurCou->day1 << ",";
+		FILE << pCurCou->session1 << ",";
+		FILE << pCurCou->day2 << ",";
+		FILE << pCurCou->session2 << ",";
+		FILE << pCurCou->teacher << ",";
+		FILE << pCurCou->maxStu  << ",";
+		FILE << pCurCou->enrolling << "\n";
+		
+        for (int i = 1; i <= pCurCou->enrolling; i++){
+            FILE << i << "," ;
+            FILE << pCurCou->Stu[i]->IDStu << "," ;
+            FILE << pCurCou->Stu[i]->firstname << "," ;
+        	FILE << pCurCou->Stu[i]->lastname << "," ;
+            FILE << pCurCou->Stu[i]->date << "," ;
+            FILE << pCurCou->Stu[i]->IDSocial << "\n" ;		
+            Score *pcurScore = pCurCou -> Stu[i] -> Inclass;
+            while (strcmp(pcurScore -> CouID.c_str(), pCurCou -> IDCou.c_str()) != 0)
+                pcurScore = pcurScore -> pNext;
+            if(pcurScore->Mid != -1)
+                FILE << pcurScore->Mid << ",";
+            else 
+                FILE << "-" << ",";
+            if(pcurScore->Final != -1)
+                FILE << pcurScore->Final << ",";
+            else 
+                FILE << "-" << ",";
+            if(pcurScore->Total != -1)
+                FILE << pcurScore->Total << ",";
+            else 
+                FILE << "-" << ",";
+            if(pcurScore->Other != -1)
+                FILE << pcurScore->Other << ",";
+            else 
+                FILE << "-" << ",";
+            if(pcurScore->GPA != -1)
+                FILE << pcurScore->GPA << "," << endl;
+            else 
+                FILE << "-" << "," << endl;
+        }
+		pCurCou = pCurCou->pNext;
+	}		
+	FILE.close();
+	gotoxy(xp,5);
+	cout << "You end this semester successfully";
+	gotoxy(xp,6);
+	cout << "PRESS ENTER TO BACK ...";
+	getch();
+}
 		
 void viewCurStuScore (Course *pHeadCou, Student *pStudent, int orderSem){
 	system("cls");
     int count = 1;
     Score *pcurScore = pStudent -> Inclass;
-    cout << "Student: " << pStudent -> lastname << " " << pStudent -> firstname << "\t\t";
-    cout << "ID: " << pStudent -> IDStu << endl << endl;
+    cout << "ID: " << pStudent -> IDStu << "\t\t";
+    cout << "STUDENT: " << pStudent -> lastname << " " << pStudent -> firstname << endl << endl;
     cout.width(8);
-    cout << left << "No"; cout.width (10);
+    cout << left << "NO"; cout.width (10);
     cout <<  "ID" ; cout.width(35);
-    cout << "Name course" ; cout.width(10);
-    cout << "Midterm" ; cout.width(10);
-    cout << "Final" ; cout.width(10); 
-    cout << "Other" ; cout.width(10);
-    cout << "Total" ; cout.width(10);
+    cout << "NAME COURSE" ; cout.width(10);
+    cout << "MIDTERM" ; cout.width(10);
+    cout << "FINAL" ; cout.width(10); 
+    cout << "OTHER" ; cout.width(10);
+    cout << "TOTAL" ; cout.width(10);
     cout << "GPA"; cout.width(20);
     cout << endl;
    	while (pcurScore != NULL){
@@ -246,24 +280,24 @@ void viewCurStuScore (Course *pHeadCou, Student *pStudent, int orderSem){
     }
     else {
         cout << "\n\nGPA of semester  " << orderSem << ": "  << pStudent -> GPA[0] << endl;
-	}
+	}	
 }
 
 void viewClassScore (Class *pcurClass){
 	system("cls");
     Student *curStu = pcurClass -> pHeadStu;
     Score *curScore;
-    cout << "Class: " << pcurClass -> className << endl;
+    cout << "CLASS: " << pcurClass -> className << endl;
     cout.width(5);
-    cout << left << "No"; cout.width (30);
-    cout << "Student name"; cout.width(12);
+    cout << left << "NO"; cout.width (30);
     cout <<  "ID" ; cout.width(11);
+    cout << "STUDENT'S NAME"; cout.width(12);
     for (int i = 0; i < 5; i++){
-        cout << "Course ID" ; cout.width(6);
-        cout << "Total" ; cout.width(4);
+        cout << "COURSE ID" ; cout.width(6);
+        cout << "TOTAL" ; cout.width(4);
         cout << "GPA" ; cout.width(11); 
     }
-    cout << "Overall GPA";
+    cout << "OVERALL GPA";
     cout << endl;
     for (int i = 0; i < pcurClass -> numberOfStu; i++){
         cout.width(5);
@@ -290,12 +324,106 @@ void viewClassScore (Class *pcurClass){
 				cout.width(11); 
 	        if (curScore)   
 				curScore = curScore -> pNext;       	
-	}
-		cout << curStu->GPA[3];  
+		}
+		if (curStu->GPA[3] != -1)
+			cout << curStu->GPA[3];
+		else
+			cout << "-";
         cout << endl;
         curStu = curStu -> pNext;
 	}
 	getch();
+}
+
+void UpdateScore(Score* &pCur, int choose){
+	float newScore;
+	cout << "ENTER THE NEW SCORE: ";
+	cin >> newScore;
+	if(choose == 1)
+		pCur->Mid = newScore;
+	if(choose == 2)
+		pCur->Final = newScore;
+	if(choose == 3)
+		pCur->Other = newScore;
+	if(choose == 4){
+		pCur->Total = newScore;
+		if(pCur->Total >= 0 && pCur->Total <= 2.9)
+			pCur->GPA = 0.0;
+		if(pCur->Total >= 3.0 && pCur->Total <= 3.9)
+			pCur->GPA = 0.5;
+		if(pCur->Total >= 4.0 && pCur->Total <= 4.7)
+			pCur->GPA = 1.0;
+		if(pCur->Total >= 4.8 && pCur->Total <= 5.4)
+			pCur->GPA = 1.5;
+		if(pCur->Total >= 5.5 && pCur->Total <= 6.2)
+			pCur->GPA = 2.0;
+		if(pCur->Total >= 6.3 && pCur->Total <= 6.9)
+			pCur->GPA = 2.5;
+		if(pCur->Total >= 7.0 && pCur->Total <= 7.7)
+			pCur->GPA = 3.0;
+		if(pCur->Total >= 7.8 && pCur->Total <= 8.4)
+			pCur->GPA = 3.5;
+		if(pCur->Total >= 8.5 && pCur->Total <= 10.0)
+			pCur->GPA = 4.0;
+	}
+	return;
+}
+
+void viewCourseScore(Course* pCurCou){
+	system("cls");
+	string tmp = "COURSE: ";
+	tmp += pCurCou->nameCou;
+	printBox(tmp,20,1,50);
+	gotoxy(xp,5);
+	cout << "NO";
+	gotoxy(xp + 3,5);
+	cout << "ID";
+	gotoxy(xp + 13,5);
+	cout << "STUDENT'S NAME";
+	gotoxy(xp + 38,5);
+	cout << "MIDTERM";
+	gotoxy(xp + 56,5);
+	cout << "FINAL";
+	gotoxy(xp + 71,5);
+	cout << "OTHER";
+	gotoxy(xp + 86,5);
+	cout << "TOTAL";
+	gotoxy(xp + 102,5);
+	cout << "GPA";
+	for(int i = 0; i < pCurCou->enrolling; i++){
+		Score* pCur = pCurCou->Stu[i]->Inclass;
+		while(pCur->CouID != pCurCou->IDCou)
+			pCur = pCur->pNext;
+		gotoxy(xp,5 + 1 + i);
+		cout << i + 1;
+		gotoxy(xp + 3, 5 + 1 + i);
+		cout << pCurCou->Stu[i]->IDStu;
+		gotoxy(xp + 13,5 + 1 + i);
+		cout << pCurCou->Stu[i]->lastname << " ";
+		cout << pCurCou->Stu[i]->firstname;
+		gotoxy(xp + 43,5 + 1 + i);
+		if(pCur->Mid != -1)
+			cout << pCur->Mid;
+		else	
+			cout << '-';
+		gotoxy(xp + 60,5 + 1 + i);
+		if(pCur->Final != -1)
+			cout << pCur->Final;
+		else	
+			cout << '-';
+		gotoxy(xp + 75,5 + 1 + i);
+		if(pCur->Other != -1)
+			cout << pCur->Other;
+		else	
+			cout << '-';
+		gotoxy(xp + 91,5 + 1 + i);
+		if(pCur->Total != -1)
+			cout << pCur->Total;
+		else	
+			cout << '-';
+		gotoxy(xp + 101,5 + 1 + i);
+		cout << pCur->GPA;		
+	}
 }
 
 void exportCourseToTeacher(Year* pcurYear, int orderSem, int orderCou){
@@ -427,91 +555,59 @@ void importCourseScore(Year* pcurYear,int orderSem,string filename){
 	return;
 }
 
-void viewCourseScore(Course* pCurCou){
-	system("cls");
-	string tmp = "Bang diem mon ";
-	tmp += pCurCou->nameCou;
-	printBox(tmp,20,1,50);
-	gotoxy(xp,5);
-	cout << "No";
-	gotoxy(xp + 10,5);
-	cout << "Student's name";
-	gotoxy(xp + 35,5);
-	cout << "Midterm Mark";
-	gotoxy(xp + 53,5);
-	cout << "Final Mark";
-	gotoxy(xp + 68,5);
-	cout << "Other Mark";
-	gotoxy(xp + 83,5);
-	cout << "Total Mark";
-	gotoxy(xp + 98,5);
-	cout << "GPA";
-	for(int i = 0; i < pCurCou->enrolling; i++){
-		Score* pCur = pCurCou->Stu[i]->Inclass;
-		while(pCur->CouID != pCurCou->IDCou)
-			pCur = pCur->pNext;
-		gotoxy(xp,5 + 1 + i);
-		cout << i + 1 << ')';
-		gotoxy(xp + 10,5 + 1 + i);
-		cout << pCurCou->Stu[i]->lastname << " ";
-		cout << pCurCou->Stu[i]->firstname;
-		gotoxy(xp + 40,5 + 1 + i);
-		if(pCur->Mid != -1)
-			cout << pCur->Mid;
-		else	
-			cout << '-';
-		gotoxy(xp + 57,5 + 1 + i);
-		if(pCur->Final != -1)
-			cout << pCur->Final;
-		else	
-			cout << '-';
-		gotoxy(xp + 72,5 + 1 + i);
-		if(pCur->Other != -1)
-			cout << pCur->Other;
-		else	
-			cout << '-';
-		gotoxy(xp + 87,5 + 1 + i);
-		if(pCur->Total != -1)
-			cout << pCur->Total;
-		else	
-			cout << '-';
-		gotoxy(xp + 98,5 + 1 + i);
-		cout << pCur->GPA;		
+void UpdateGPA (Year *&pcurYear){
+    Class *pcurClass = pcurYear -> pHeadClass;
+    Student *curStu;
+    Score *curScore;
+    float *sum = new float [3];
+    int *count = new int [3];
+    float tmp;
+    bool calculate;
+    while (pcurClass != nullptr){
+        curStu = pcurClass -> pHeadStu;
+        for (int i = 0; i < pcurClass -> numberOfStu; i++){
+            curScore = curStu -> Inclass;
+            sum[0] = sum[1] = sum[2] = 0;
+            count[0] = count[1] = count[2] = 0;
+            while (curScore != nullptr){
+            	cout << i << " ";
+                if (curScore -> Total >= 9)
+                    curScore -> GPA = 4;
+                else if (curScore -> Total >= 8)
+                    curScore -> GPA = 3.5;
+                else if (curScore -> Total >= 7)
+                    curScore -> GPA = 3;
+                else if (curScore -> Total >= 6)
+                    curScore -> GPA = 2.5;
+                else if (curScore -> Total >= 5)
+                    curScore -> GPA = 2;
+                else if (curScore -> Total >= 4)
+                    curScore -> GPA = 1;
+                else curScore -> GPA = 0;
+                sum[curScore -> semester -1] += curScore -> GPA;
+                count[curScore -> semester -1] += 1;
+                curScore = curScore -> pNext;
+		}
+            tmp = 0;
+            calculate = true;
+            for (int j = 0; j < 3; j++){
+                if (count [j] != 0){
+                    curStu -> GPA[j] = round(sum[j]/count[j]*10)/10;
+                    tmp += round(sum[j]/count[j]*10)/10;
+				}	
+                else {
+                    calculate = false;
+                    curStu -> GPA[j] = -1;
+                }
+            }
+            if (calculate == true)
+                curStu -> GPA[3] = round(tmp/3*10)/10;
+            else 
+				curStu -> GPA[3] = -1; 
+            curStu = curStu -> pNext;
+        } 
+        pcurClass = pcurClass -> pNext;
 	}
-}
-
-void UpdateScore(Score* &pCur, int choose){
-	float newScore;
-	cout << "Enter the new Score: ";
-	cin >> newScore;
-	if(choose == 1)
-		pCur->Mid = newScore;
-	if(choose == 2)
-		pCur->Final = newScore;
-	if(choose == 3)
-		pCur->Other = newScore;
-	if(choose == 4){
-		pCur->Total = newScore;
-		if(pCur->Total >= 0 && pCur->Total <= 2.9)
-			pCur->GPA = 0.0;
-		if(pCur->Total >= 3.0 && pCur->Total <= 3.9)
-			pCur->GPA = 0.5;
-		if(pCur->Total >= 4.0 && pCur->Total <= 4.7)
-			pCur->GPA = 1.0;
-		if(pCur->Total >= 4.8 && pCur->Total <= 5.4)
-			pCur->GPA = 1.5;
-		if(pCur->Total >= 5.5 && pCur->Total <= 6.2)
-			pCur->GPA = 2.0;
-		if(pCur->Total >= 6.3 && pCur->Total <= 6.9)
-			pCur->GPA = 2.5;
-		if(pCur->Total >= 7.0 && pCur->Total <= 7.7)
-			pCur->GPA = 3.0;
-		if(pCur->Total >= 7.8 && pCur->Total <= 8.4)
-			pCur->GPA = 3.5;
-		if(pCur->Total >= 8.5 && pCur->Total <= 10.0)
-			pCur->GPA = 4.0;
-	}
-	return;
 }
 
 void staffScore(Year* &pcurYear, int orderSem){
@@ -556,6 +652,7 @@ void staffScore(Year* &pcurYear, int orderSem){
 			gotoxy(xp, soluong + 8);
 			cout << "Which course do you want to export? Please enter the course's No (Ex: 1): ";
 			cin >> orderCou;
+//			listStuOfCou(pcurYear,orderSem,soluong,0);
 			exportCourseToTeacher(pcurYear,orderSem,orderCou);
 		}
 		else if (c == 'i' || c == 'I'){
@@ -591,8 +688,7 @@ void staffScore(Year* &pcurYear, int orderSem){
 						orderCou ++;
 						gotoxy (3,6 + orderCou);	
 					}	
-				}
-				
+				}	
 				if (c1 == 'B' || c1 == 'b')
 					break;
 				else if (c1 == 13){
@@ -625,15 +721,15 @@ void staffScore(Year* &pcurYear, int orderSem){
 						if(c2 == 13){
 							int ch;
 							gotoxy(xp,15+pCurCou->enrolling);
-							cout << "1: update midterm mark.";
+							cout << "1: Update midterm mark.";
 							gotoxy(xp,16+pCurCou->enrolling);
-							cout << "2: update final mark.";
+							cout << "2: Update final mark.";
 							gotoxy(xp,17+pCurCou->enrolling);
-							cout << "3: update other mark.";
+							cout << "3: Update other mark.";
 							gotoxy(xp,18+pCurCou->enrolling);
-							cout << "4: update total mark.";
+							cout << "4: Update total mark.";
 							gotoxy(xp,19+pCurCou->enrolling);
-							cout << "Enter your choose: ";
+							cout << "ENTER YOUR CHOOSE: ";
 							cin >> ch;
 							Score* pCur = pCurCou->Stu[orderStu]->Inclass;
 							while(pCur->CouID != pCurCou->IDCou)
@@ -684,14 +780,14 @@ void listStuOfCou (Year *&pcurYear, int &orderSem, int orderCou, bool print){
 	system("cls");
 	gotoxy(xp,5);
 	cout << "NO";
-	gotoxy(xp + 5,5);
-	cout << "STUDENT ID";
-	gotoxy(xp + 17,5);
-	cout << "NAME ";
+	gotoxy(xp + 3,5);
+	cout << "ID";
+	gotoxy(xp + 13,5);
+	cout << "STUDENT'S NAME ";
 	gotoxy(xp + 40,5);
 	cout << "BIRTH DATE";
 	gotoxy(xp + 55 ,5);
-	cout << "SOCIAL ID";
+	cout << "GENDER";
 	
 	Course *pHeadCou;
 	switch (orderSem){
@@ -723,9 +819,9 @@ void listStuOfCou (Year *&pcurYear, int &orderSem, int orderCou, bool print){
 		gotoxy(xp + 40,6+i);
 		cout << pCurCou->Stu[i]->date;
 		gotoxy(xp + 55,6+i);
-		cout << pCurCou->Stu[i]->IDSocial;		
+		cout << pCurCou->Stu[i]->gender;		
 	}
-	gotoxy(xp, 5 + soluong + 13 );
+	gotoxy(xp, 5 + pCurCou->enrolling + 5 );
  	cout << "PRESS ENTER TO GO BACK...";
  	getch();
 }
@@ -760,8 +856,10 @@ void listStuofClass(Year* pcurYear, int orderClass){
 	cout << "NAME ";
 	gotoxy(xp + 40,5);
 	cout << "BIRTH DATE";
-	gotoxy(xp + 55 ,5);
+	gotoxy(xp + 55,5);
 	cout << "SOCIAL ID";
+	gotoxy(xp + 65,5);
+	cout << "GENDER";
 
 	Class* pCurClass = pcurYear->pHeadClass;
 	for(int i = 0; i < orderClass; i++){
@@ -779,8 +877,12 @@ void listStuofClass(Year* pcurYear, int orderClass){
 		cout << pCurStu->date;
 		gotoxy(xp + 55 ,5+i);
 		cout << pCurStu->IDSocial;
+		gotoxy(xp + 65 ,5+i);
+		cout << pCurStu->gender;		
 		pCurStu = pCurStu->pNext;		
 	}
+	gotoxy(xp, 5 + pCurClass->numberOfStu + 5 );
+ 	cout << "PRESS ENTER TO GO BACK...";
 	getch();
 }
 
@@ -1035,8 +1137,6 @@ void createCourse(Year *&pCurYear, int orderSem){
 }
 
 void editCourse(Year *&pCurYear, int orderSem, int orderCou){
-	system("cls");
-	
 	Course *pCurCou;
 	switch (orderSem){
 		case 1:{
@@ -1061,23 +1161,23 @@ void editCourse(Year *&pCurYear, int orderSem, int orderCou){
 	gotoxy(xp,2);
 	cout << "Move arrow keys and enter to choose the element you want to edit";
 	gotoxy(xp,5);
-	cout << "Course ID: " << pCurCou->IDCou << endl;
+	cout << "COURSE ID: " << pCurCou->IDCou << endl;
 	gotoxy(xp,6);
-	cout << "Name course: " << pCurCou->nameCou << endl;
+	cout << "NAME COURSE: " << pCurCou->nameCou << endl;
 	gotoxy(xp,7);
-	cout << "Credit: " << pCurCou->credits << endl;
+	cout << "CREDIT: " << pCurCou->credits << endl;
 	gotoxy(xp,8);
-	cout << "Day 1: " << pCurCou->day1 << endl;
+	cout << "DAY 1: " << pCurCou->day1 << endl;
 	gotoxy(xp,9);
-	cout << "Session 1: " << pCurCou->session1 << endl;
+	cout << "SESSION 1: " << pCurCou->session1 << endl;
 	gotoxy(xp,10);
-	cout << "Day 2: " << pCurCou->day2 << endl;
+	cout << "DAY 2: " << pCurCou->day2 << endl;
 	gotoxy(xp,11);
-	cout << "Session 2: " << pCurCou->session2 << endl;
+	cout << "SESSION 2: " << pCurCou->session2 << endl;
 	gotoxy(xp,12);
-	cout << "Teacher: " << pCurCou->teacher << endl;
+	cout << "TEACHER: " << pCurCou->teacher << endl;
 	gotoxy(xp,13);
-	cout << "The max number of student: " << pCurCou->maxStu;	
+	cout << "THE MAX NUMBER OF STUDENTS: " << pCurCou->maxStu;	
 	
 	char c = '1'; 
 	int orderInfo = 0;
@@ -1095,7 +1195,7 @@ void editCourse(Year *&pCurYear, int orderSem, int orderCou){
 	}
 	
 	gotoxy(xp,25);
-	cout << "Do you want change to : ";
+	cout << "DO YOU WANT CHANGE TO: ";
 	gotoxy (32,25);
 	fflush(stdin);
 	switch(orderInfo){
@@ -1136,14 +1236,14 @@ void editCourse(Year *&pCurYear, int orderSem, int orderCou){
 		}		
 	}
 	
-	gotoxy(xp,27);
+	gotoxy(xp,5 + soluong + 10);
 	cout << "Edit successfully";
+	gotoxy(xp,5 + soluong + 11);
+	cout << "PRESS ENTER TO BACK...";
 	getch();	
 }
 
 void deleteCourse(Year *&pCurYear, int orderSem, int orderCou){
-	system("cls");
-	
 	Course *pHeadCou, *pRemove;
 	switch (orderSem){
 		case 1:{
@@ -1187,82 +1287,10 @@ void deleteCourse(Year *&pCurYear, int orderSem, int orderCou){
 	}
 	delete pRemove;
 	
-	gotoxy(xp,5);
+	gotoxy(xp,5 + soluong + 10);
 	cout << "Delete successfully";
-	getch();
-}
-
-void exportCourse(Year *pCurYear, int orderSem){
-	fstream FILE;
-	Course *pHeadCou;
-	switch (orderSem){
-		case 1:{
-			pHeadCou = pCurYear->Sem1.pHeadCou;
-			FILE.open(to_string(pCurYear->start) + "Sem1.csv",ios::out);
-			break;
-		}
-		case 2:{
-			pHeadCou = pCurYear->Sem2.pHeadCou;
-			FILE.open(to_string(pCurYear->start) + "Sem2.csv",ios::out);
-			break;
-		}
-		case 3:{
-			pHeadCou = pCurYear->Sem3.pHeadCou;
-			FILE.open(to_string(pCurYear->start) + "Sem3.csv",ios::out);
-		}
-	}
-		
-	Course *pCurCou = pHeadCou;
-	while (pCurCou != NULL){
-		FILE << pCurCou->IDCou << ",";
-		FILE << pCurCou->nameCou << ",";
-		FILE << pCurCou->credits << ",";
-		FILE << pCurCou->day1 << ",";
-		FILE << pCurCou->session1 << ",";
-		FILE << pCurCou->day2 << ",";
-		FILE << pCurCou->session2 << ",";
-		FILE << pCurCou->teacher << ",";
-		FILE << pCurCou->maxStu  << ",";
-		FILE << pCurCou->enrolling << "\n";
-		
-        for (int i = 1; i <= pCurCou->enrolling; i++){
-            FILE << i << "," ;
-            FILE << pCurCou->Stu[i]->IDStu << "," ;
-            FILE << pCurCou->Stu[i]->firstname << "," ;
-        	FILE << pCurCou->Stu[i]->lastname << "," ;
-            FILE << pCurCou->Stu[i]->date << "," ;
-            FILE << pCurCou->Stu[i]->IDSocial << "\n" ;		
-            Score *pcurScore = pCurCou -> Stu[i] -> Inclass;
-            while (strcmp(pcurScore -> CouID.c_str(), pCurCou -> IDCou.c_str()) != 0)
-                pcurScore = pcurScore -> pNext;
-            if(pcurScore->Mid != -1)
-                FILE << pcurScore->Mid << ",";
-            else 
-                FILE << "-" << ",";
-            if(pcurScore->Final != -1)
-                FILE << pcurScore->Final << ",";
-            else 
-                FILE << "-" << ",";
-            if(pcurScore->Total != -1)
-                FILE << pcurScore->Total << ",";
-            else 
-                FILE << "-" << ",";
-            if(pcurScore->Other != -1)
-                FILE << pcurScore->Other << ",";
-            else 
-                FILE << "-" << ",";
-            if(pcurScore->GPA != -1)
-                FILE << pcurScore->GPA << "," << endl;
-            else 
-                FILE << "-" << "," << endl;
-        }
-		pCurCou = pCurCou->pNext;
-	}		
-	FILE.close();
-	gotoxy(xp,5);
-	cout << "You end this semester successfully";
-	gotoxy(xp,6);
-	cout << "PRESS ENTER TO BACK ...";
+	gotoxy(xp,5 + soluong + 11);
+	cout << "PRESS ENTER TO BACK...";
 	getch();
 }
 
@@ -1377,9 +1405,9 @@ void createCourseRegister(Year *&pcurYear, int &orderSem){
 				listCourse(pcurYear,orderSem,soluong);
 				gotoxy(xp,5 + soluong + 5);
 				cout << "Move arrow keys and enter to choose a course, then ...";
-				printBox("Press E to edit the course",xp,5 + soluong + 8,size);
-				printBox("Press D to delete the course",xp,5 + soluong + 11,size);
-				printBox("Press B to back",xp,5 + soluong + 14,size);	
+				printBox("Press E to edit the course",xp,5 + soluong + 6,30);
+				printBox("Press D to delete the course",xp + 33,5 + soluong + 6,30);
+				printBox("Press B to back",xp + 66,5 + soluong + 6,30);	
 				
 				c2 = '1'; 
 				int orderCou = 0;
@@ -1657,328 +1685,6 @@ void RegisterCou(Year *&pcurYear, int orderSem, Course *pHead, Student *curStu){
 	}
 } 
 
-void UpdateData (Year *&pCurYear, int semester, bool yearCreated){
-    if (yearCreated == false)
-        return;
-    Course *pHeadCou;
-    switch (semester){
-		case 1:{
-			pHeadCou = pCurYear->Sem1.pHeadCou;
-			break;
-		}
-		case 2:{
-			pHeadCou = pCurYear->Sem2.pHeadCou;
-			break;
-		}
-		case 3:{
-			pHeadCou = pCurYear->Sem3.pHeadCou;
-            break;
-		}
-	} 
-    if (pHeadCou == nullptr){
-        return;
-    }
-    // toi da chinh cho nay
-    Course *pCurCou = pHeadCou;
-    while (pCurCou != nullptr){
-        pCurCou -> Stu = new Student *[pCurCou -> enrolling];
-        pCurCou = pCurCou -> pNext;
-    }
-    Class *pCurClass = pCurYear -> pHeadClass;
-    Student *pCurStu;
-    int k;
-    pCurCou = pHeadCou;
-    int length = strlen (pCurCou -> IDCou.c_str());
-    Score *curScore;
-    while (pCurClass != nullptr){
-        pCurStu = pCurClass -> pHeadStu;
-        for (int j = 0; j < pCurClass -> numberOfStu; j++){
-            int maxCou = strlen (pCurStu -> course.c_str()) / length;
-            curScore = pCurStu -> Inclass;
-            if (pCurStu -> Inclass != NULL)
-                while (curScore -> pNext != nullptr)
-                    curScore = curScore -> pNext; 
-					}
-					else{
-					}	
-				else
-					curScore = pCurStu->Inclass = NULL;		
-//			cout << maxCou << " ";
-            for (int i = 0; i < maxCou; i++){
-                pCurCou = pHeadCou;
-                while (pCurCou != nullptr && pCurCou -> IDCou != pCurStu -> course.substr(i*length, length)){
-                    pCurCou = pCurCou -> pNext;
-                }
-                if (pCurCou == nullptr)
-                    continue;
-                if (hasScore == false && registerBegin && registerEnd){
-                    if (pCurStu -> Inclass == nullptr) {
-                        curScore = new Score;
-                        pCurStu -> Inclass = curScore;
-                    }
-                    else{
-                        curScore -> pNext = new Score;
-                        curScore = curScore -> pNext;
-                    }               
-                    curScore -> CouName = pCurCou -> nameCou;
-                    curScore -> CouID = pCurCou -> IDCou;
-                    curScore -> GPA = -1;
-                    curScore -> Final = -1;
-                    curScore -> Mid = -1;
-                    curScore -> Other = -1;
-                    curScore -> Total = -1;
-                    curScore -> semester = semester;
-//                    cout << j << " " << pCurCou->IDCou << " ";
-                    curScore -> pNext = nullptr;
-                }
-                k = 0;
-	            while (pCurCou -> Stu[k] != NULL)
-                    k++;
-	            pCurCou->Stu[k] = pCurStu;
-//	               cout << pCurCou->IDCou << " " << k << " ";                	
-            }
-            
-            pCurStu = pCurStu -> pNext;  
-        }
-        pCurClass = pCurClass -> pNext;
-        cout << endl;
-//        getch();
-    }             
-	pCurCou = pHeadCou;
-}             
-
-void ExportData (Year *&curYear){
-    Course *pHeadCou[3];
-    pHeadCou[0] = curYear -> Sem1.pHeadCou;
-    pHeadCou[1] = curYear -> Sem2.pHeadCou;
-    pHeadCou[2] = curYear -> Sem3.pHeadCou;      
-    string filename = to_string (curYear -> start) + ".csv";
-    ofstream ofile (filename.c_str());
-    for (int i = 0; i < 3; i++){
-        Course *pcurCou = pHeadCou[i];
-        int count = 0;
-        while (pcurCou != nullptr){
-            pcurCou = pcurCou -> pNext;
-            count ++;
-        }
-        pcurCou = pHeadCou[i];
-        ofile << i+1 << "," << count << endl;
-        while (pcurCou != nullptr){
-            ofile << pcurCou -> IDCou << ",";
-            ofile << pcurCou -> nameCou << ",";
-            ofile << pcurCou -> credits << ",";
-            ofile << pcurCou -> day1 << ",";
-            ofile << pcurCou -> session1 << ",";
-            ofile << pcurCou -> day2 << ",";
-            ofile << pcurCou -> session2 << ",";
-            ofile << pcurCou -> teacher << ",";
-            ofile << pcurCou -> enrolling << ",";
-            ofile << pcurCou -> maxStu << endl;
-            pcurCou = pcurCou -> pNext;
-        } 
-    }        
-    Class *pHeadClass = curYear -> pHeadClass;
-    Class *pcurClass = pHeadClass;
-    int length = strlen (pHeadCou[0] -> IDCou.c_str());
-    Student *pcurStu;
-    Score *pcurScore;
-    while (pcurClass != nullptr){
-        ofile << pcurClass -> className << "," << pcurClass -> numberOfStu << endl;
-        pcurStu = pcurClass -> pHeadStu;
-        for (int i = 0; i < pcurClass -> numberOfStu; i++){
-            ofile << pcurStu -> No << ",";
-            ofile << pcurStu -> IDStu << ",";
-            ofile << pcurStu -> firstname << ",";
-            ofile << pcurStu -> lastname << ",";
-            ofile << pcurStu -> gender << ",";
-            ofile << pcurStu -> date << ",";
-            ofile << pcurStu -> IDSocial << ",";
-            ofile << pcurStu -> course << endl;
-            if (registerEnd && registerBegin){
-                pcurScore = pcurStu -> Inclass;
-                for (int i = 0; i < strlen(pcurStu -> course.c_str())/length; i++){
-                    ofile << pcurScore -> semester << ",";
-                    ofile << pcurScore -> CouID << ",";
-                    ofile << pcurScore -> Mid << ",";
-                    ofile << pcurScore -> Final << ",";
-                    ofile << pcurScore -> Total << ",";
-                    ofile << pcurScore -> Other << ",";
-                    if (i != strlen(pcurStu -> course.c_str())/length - 1)
-                        ofile << pcurScore -> GPA << ",";     
-                    else 
-                        ofile << pcurScore -> GPA << endl;
-                    pcurScore = pcurScore -> pNext;
-                    }
-            }
-            pcurStu = pcurStu -> pNext;
-        }
-        pcurClass = pcurClass -> pNext;
-    } 
-    ofile.close();
-}
-
-void readData (Year *&pcurYear){
-	fstream FILE;
-	FILE.open("status.txt",ios::in);
-	int start_year, end_year;
-	FILE >> start_year >> end_year >> registerBegin >> hasScore >> registerEnd;
-	FILE.close();
-	
-	if (start_year && end_year){
-		pcurYear = new Year;
-		pcurYear->start = start_year;
-		pcurYear->end = end_year;
-		
-		string filename = to_string(pcurYear -> start) + ".csv";
-	    ifstream ifile (filename.c_str());
-	    Semester *sem[3];
-	    sem[0] = &pcurYear -> Sem1;
-	    sem[1] = &pcurYear -> Sem2;
-	    sem[2] = &pcurYear -> Sem3; 
-	    Course *pcurCou;
-	    string tmp = "";
-	    for (int i = 0; i < 3; i++){
-	        getline (ifile, tmp, ',');
-	        getline (ifile, tmp, '\n'); 
-	        int count = stoi (tmp);
-	        sem[i]->pHeadCou = NULL;
-	        pcurCou = nullptr;
-	        for (int j = 0; j < count; j++){
-	            Course *pNew = new Course;
-	            getline(ifile, tmp,',');
-	            if (tmp == "\0")
-	                break;
-	            pNew -> IDCou = tmp;
-	            getline(ifile, tmp, ',');
-	            pNew -> nameCou = tmp;
-	            getline(ifile, tmp, ',');
-	            pNew->credits = stoi(tmp.c_str()); 
-	            getline(ifile, tmp, ',');
-	            pNew -> day1 = tmp;
-	            getline(ifile, tmp, ',');
-	            pNew -> session1 = tmp;
-	            getline(ifile, tmp, ',');
-	            pNew -> day2 = tmp;
-	            getline(ifile, tmp, ',');
-	            pNew -> session2 = tmp;
-	            getline(ifile, tmp, ',');
-	            pNew -> teacher = tmp;
-	            getline(ifile, tmp, ',');
-	            pNew -> enrolling = stoi (tmp);
-	            getline (ifile, tmp, '\n'); 
-	            pNew -> maxStu = stoi (tmp);
-	            tmp = "";
-	            if (sem[i] -> pHeadCou == nullptr)
-	                sem[i] -> pHeadCou  = pNew;
-	            if (pcurCou != nullptr)
-	                pcurCou->pNext = pNew;
-	            pcurCou = pNew;
-	        }
-	    }
-	    getline (ifile, tmp, ',');
-//	    cout << tmp << endl;
-	    Class *curClass;
-	    pcurYear->pHeadClass = NULL;
-	    Student *curStu;
-	    Score *curScore;
-	    int length = strlen(sem[0] -> pHeadCou -> IDCou.c_str());
-	    while (!ifile.eof()) {
-	        if (tmp != "\0") {
-	            if ( pcurYear -> pHeadClass != nullptr) {
-	                curClass->pNext = new Class;
-	                curClass = curClass->pNext;
-	                curClass -> pNext = nullptr;
-	            }
-	            else {
-	                curClass = new Class;
-	                pcurYear -> pHeadClass = curClass; 
-	            }
-	            curClass->className = tmp;
-	            //cout << tmp << endl;
-	            getline(ifile, tmp, '\n');
-	            curClass->numberOfStu = stoi(tmp.c_str());
-	            cout << curClass->numberOfStu << endl;
-	            for (int i = curClass->numberOfStu; i > 0; i--) {
-	                if (i != curClass->numberOfStu) {
-	                    curStu->pNext = new Student;
-	                    curStu = curStu->pNext;
-	                }
-	                else { 
-	                    curStu = new Student;
-	                    curClass -> pHeadStu = curStu;
-	                }
-	                getline (ifile, tmp, ',');
-	                //cout << tmp << endl;
-	                curStu->No = stoi(tmp.c_str());
-	                cout << curStu->No << endl;
-	                getline(ifile, tmp, ',');
-	                curStu->IDStu = tmp;
-	                getline(ifile, tmp, ',');
-	                curStu->firstname = tmp;
-	                getline(ifile, tmp, ',');
-	                curStu->lastname = tmp;
-	                getline(ifile, tmp, ',');
-	                curStu->gender = tmp;
-	                getline(ifile, tmp, ',');
-	                curStu->date = tmp;         
-	                getline(ifile, tmp, ',');
-	                //cout << tmp << endl;
-	                curStu->IDSocial = stoi(tmp.c_str());
-	                getline (ifile, tmp, '\n');
-	                curStu -> course = tmp;
-	              //  cout << "Course" << curStu -> course << endl;
-	                curStu->pNext = nullptr;
-	                if (hasScore && registerEnd && registerBegin ){
-	                    int end = strlen(curStu -> course.c_str()) / length;
-	                    for (int j = 0; j < end; j++){
-	                        if (j == 0){
-	                            curScore = new Score;
-	                            curStu -> Inclass = curScore;
-	                        }
-	                        else {
-	                            curScore -> pNext = new Score;
-	                            curScore = curScore -> pNext;
-	                        }
-	                            curScore -> pNext = nullptr;
-	                        getline(ifile, tmp, ',');
-	                        curScore -> semester = stoi (tmp);
-	                        getline (ifile, tmp, ',');
-	                        curScore -> CouID = tmp;
-	                        getline (ifile, tmp, ',');
-	                        curScore -> Mid = stof (tmp);
-	                        getline (ifile, tmp, ',');
-	                        curScore -> Final = stof (tmp);
-	                        getline (ifile, tmp, ',');
-	                        curScore -> Total = stof (tmp);
-	                        getline (ifile, tmp, ',');
-	                        curScore -> Other = stoi (tmp);
-	                        if (j != end -1)
-	                            getline (ifile, tmp, ',');
-	                        else getline (ifile, tmp, '\n');
-	                        curScore -> GPA = stof (tmp);
-	                    }
-	                }
-	            }
-	        }
-	        else break;
-	        getline (ifile, tmp, ',');
-	        //cout << tmp << endl;
-	    }
-		if (pcurYear->Sem1.pHeadCou != NULL)
-			orderSem = 1;
-		if (pcurYear->Sem2.pHeadCou != NULL)
-			orderSem = 2;
-		if (pcurYear->Sem3.pHeadCou != NULL)
-			orderSem = 3;	
-//		cout << "1";		    
-	    for (int i = 1; i < 4; i++)
-	        UpdateData(pcurYear, i, true);
-	    hasScore = true;
-	}
-	else
-		pcurYear = NULL;	
-}
-
 void Runtest(Year *pcurYear, int orderSem, Student *curStu){
     Course *pHeadCou;
     switch (orderSem){
@@ -2003,6 +1709,8 @@ void Runtest(Year *pcurYear, int orderSem, Student *curStu){
 		UpdateGPA (pcurYear);
 		viewCurStuScore (pHeadCou, curStu, orderSem);
 	}
+	printBox("Press O to log out",xp,14,30);	
+	printBox("Press ESC to exit",xp + 33,14,30);
 }
 
 void createSemester(Year *&pcurYear, int &orderSem){
@@ -2048,6 +1756,30 @@ void createSemester(Year *&pcurYear, int &orderSem){
 	cout << "\n        " << "You created successfully!";
 	cout << "\n        " << "PRESS ENTER TO GO BACK...";
 	getch();	
+}
+
+void OutPutStu (Class *pheadClass){
+	system("cls");
+    Class *pcurClass = pheadClass;
+    while (pcurClass != nullptr){
+        Student *pcurStu = pcurClass -> pHeadStu;
+        cout << "Class: " << pcurClass -> className << endl;
+        cout << "Number of student: " << pcurClass -> numberOfStu << endl;
+        while (pcurStu != nullptr){
+            cout << "No: " << pcurStu -> No << endl;
+            cout << "ID: " << pcurStu -> IDStu << endl;
+            cout << "First name: " << pcurStu -> firstname << endl;
+            cout << "Last name: " << pcurStu -> lastname << endl;
+            cout << "Gender: " << pcurStu -> gender << endl;
+            cout << "Date of birth: " << pcurStu -> date << endl;
+            cout << "ID Social: " << pcurStu -> IDSocial << endl;
+            cout << endl;
+            pcurStu = pcurStu -> pNext;
+        }
+        pcurClass = pcurClass -> pNext;
+        cout << endl;
+    }
+    getch();
 }
 
 Class* CreateClass(Class*& phead, string tmp, Year*& curyear){
@@ -2202,30 +1934,6 @@ void ImportClasses (Class *&pheadClass, Year *&pcurYear){
         ImportNewStu(filename, pcurClass);
     } 
     OutPutStu (pheadClass);
-}
-
-void OutPutStu (Class *pheadClass){
-	system("cls");
-    Class *pcurClass = pheadClass;
-    while (pcurClass != nullptr){
-        Student *pcurStu = pcurClass -> pHeadStu;
-        cout << "Class: " << pcurClass -> className << endl;
-        cout << "Number of student: " << pcurClass -> numberOfStu << endl;
-        while (pcurStu != nullptr){
-            cout << "No: " << pcurStu -> No << endl;
-            cout << "ID: " << pcurStu -> IDStu << endl;
-            cout << "First name: " << pcurStu -> firstname << endl;
-            cout << "Last name: " << pcurStu -> lastname << endl;
-            cout << "Gender: " << pcurStu -> gender << endl;
-            cout << "Date of birth: " << pcurStu -> date << endl;
-            cout << "ID Social: " << pcurStu -> IDSocial << endl;
-            cout << endl;
-            pcurStu = pcurStu -> pNext;
-        }
-        pcurClass = pcurClass -> pNext;
-        cout << endl;
-    }
-    getch();
 }
 
 void ImportOldData (Year *&curYear){
@@ -2683,4 +2391,329 @@ void writeNewStu (Year *pcurYear){
         	K = curClass -> className.substr (0,2);
     }
     ofile.close();
+}
+
+void ExportData (Year *&curYear){
+    Course *pHeadCou[3];
+    pHeadCou[0] = curYear -> Sem1.pHeadCou;
+    pHeadCou[1] = curYear -> Sem2.pHeadCou;
+    pHeadCou[2] = curYear -> Sem3.pHeadCou;      
+    string filename = to_string (curYear -> start) + ".csv";
+    ofstream ofile (filename.c_str());
+    for (int i = 0; i < 3; i++){
+        Course *pcurCou = pHeadCou[i];
+        int count = 0;
+        while (pcurCou != nullptr){
+            pcurCou = pcurCou -> pNext;
+            count ++;
+        }
+        pcurCou = pHeadCou[i];
+        ofile << i+1 << "," << count << endl;
+        while (pcurCou != nullptr){
+            ofile << pcurCou -> IDCou << ",";
+            ofile << pcurCou -> nameCou << ",";
+            ofile << pcurCou -> credits << ",";
+            ofile << pcurCou -> day1 << ",";
+            ofile << pcurCou -> session1 << ",";
+            ofile << pcurCou -> day2 << ",";
+            ofile << pcurCou -> session2 << ",";
+            ofile << pcurCou -> teacher << ",";
+            ofile << pcurCou -> enrolling << ",";
+            ofile << pcurCou -> maxStu << endl;
+            pcurCou = pcurCou -> pNext;
+        } 
+    }        
+    Class *pHeadClass = curYear -> pHeadClass;
+    Class *pcurClass = pHeadClass;
+    int length = strlen (pHeadCou[0] -> IDCou.c_str());
+    Student *pcurStu;
+    Score *pcurScore;
+    while (pcurClass != nullptr){
+        ofile << pcurClass -> className << "," << pcurClass -> numberOfStu << endl;
+        pcurStu = pcurClass -> pHeadStu;
+        for (int i = 0; i < pcurClass -> numberOfStu; i++){
+            ofile << pcurStu -> No << ",";
+            ofile << pcurStu -> IDStu << ",";
+            ofile << pcurStu -> firstname << ",";
+            ofile << pcurStu -> lastname << ",";
+            ofile << pcurStu -> gender << ",";
+            ofile << pcurStu -> date << ",";
+            ofile << pcurStu -> IDSocial << ",";
+            ofile << pcurStu -> course << endl;
+            if (registerEnd && registerBegin){
+                pcurScore = pcurStu -> Inclass;
+                for (int i = 0; i < strlen(pcurStu -> course.c_str())/length; i++){
+                    ofile << pcurScore -> semester << ",";
+                    ofile << pcurScore -> CouID << ",";
+                    ofile << pcurScore -> Mid << ",";
+                    ofile << pcurScore -> Final << ",";
+                    ofile << pcurScore -> Total << ",";
+                    ofile << pcurScore -> Other << ",";
+                    if (i != strlen(pcurStu -> course.c_str())/length - 1)
+                        ofile << pcurScore -> GPA << ",";     
+                    else 
+                        ofile << pcurScore -> GPA << endl;
+                    pcurScore = pcurScore -> pNext;
+                    }
+            }
+            pcurStu = pcurStu -> pNext;
+        }
+        pcurClass = pcurClass -> pNext;
+    } 
+    ofile.close();
+}
+
+void UpdateData (Year *&pCurYear, int semester, bool yearCreated){
+    if (yearCreated == false)
+        return;
+    Course *pHeadCou;
+    switch (semester){
+		case 1:{
+			pHeadCou = pCurYear->Sem1.pHeadCou;
+			break;
+		}
+		case 2:{
+			pHeadCou = pCurYear->Sem2.pHeadCou;
+			break;
+		}
+		case 3:{
+			pHeadCou = pCurYear->Sem3.pHeadCou;
+            break;
+		}
+	} 
+    if (pHeadCou == nullptr){
+        return;
+    }
+    // toi da chinh cho nay
+    Course *pCurCou = pHeadCou;
+    while (pCurCou != nullptr){
+        pCurCou -> Stu = new Student *[pCurCou -> enrolling];
+        for ( int i = 0; i < pCurCou -> enrolling; i++)
+        	pCurCou->Stu[i] = NULL;
+        pCurCou = pCurCou -> pNext;
+    }
+    Class *pCurClass = pCurYear -> pHeadClass;
+    Student *pCurStu;
+    int k;
+    pCurCou = pHeadCou;
+    int length = strlen (pCurCou -> IDCou.c_str());
+    Score *curScore;
+    while (pCurClass != nullptr){
+        pCurStu = pCurClass -> pHeadStu;
+        for (int j = 0; j < pCurClass -> numberOfStu; j++){
+        	//cout << pCurStu -> IDStu << endl;
+        	int maxCou = strlen (pCurStu -> course.c_str()) / length;
+            curScore = pCurStu -> Inclass;
+            if (hasScore == false && registerBegin && registerEnd)
+            	if (semester >= 2){
+	        		if (pCurStu -> Inclass != NULL)
+	        			while (curScore -> pNext != nullptr)
+		                    curScore = curScore -> pNext;            		
+				}	
+				else
+					curScore = pCurStu->Inclass = NULL;	
+//			cout << maxCou << " ";
+            for (int i = 0; i < maxCou; i++){
+                pCurCou = pHeadCou;
+                while (pCurCou != nullptr && pCurCou -> IDCou != pCurStu -> course.substr(i*length, length)){
+                    pCurCou = pCurCou -> pNext;
+                }
+                if (pCurCou == nullptr)
+                    continue;
+                if (hasScore == false && registerBegin && registerEnd){
+                    if (pCurStu -> Inclass == nullptr) {
+                        curScore = new Score;
+                        pCurStu -> Inclass = curScore;
+                    }
+                    else{
+                        curScore -> pNext = new Score;
+                        curScore = curScore -> pNext;
+                    }               
+                    curScore -> CouName = pCurCou -> nameCou;
+                    curScore -> CouID = pCurCou -> IDCou;
+                    curScore -> GPA = -1;
+                    curScore -> Final = -1;
+                    curScore -> Mid = -1;
+                    curScore -> Other = -1;
+                    curScore -> Total = -1;
+                    curScore -> semester = semester;
+//                    cout << j << " " << pCurCou->IDCou << " ";
+                    curScore -> pNext = nullptr;
+                }
+                k = 0;
+	            while (pCurCou -> Stu[k] != NULL)
+                    k++;
+	            pCurCou->Stu[k] = pCurStu;
+//	               cout << pCurCou->IDCou << " " << k << " ";                	
+            }
+            
+            pCurStu = pCurStu -> pNext;  
+        }
+        pCurClass = pCurClass -> pNext;
+        cout << endl;
+//        getch();
+    }             
+	pCurCou = pHeadCou;
+}             
+
+void readData (Year *&pcurYear){
+	fstream FILE;
+	FILE.open("status.txt",ios::in);
+	int start_year, end_year;
+	FILE >> start_year >> end_year >> registerBegin >> hasScore >> registerEnd;
+	FILE.close();
+	
+	if (start_year && end_year){
+		pcurYear = new Year;
+		pcurYear->start = start_year;
+		pcurYear->end = end_year;
+		
+		string filename = to_string(pcurYear -> start) + ".csv";
+	    ifstream ifile (filename.c_str());
+	    Semester *sem[3];
+	    sem[0] = &pcurYear -> Sem1;
+	    sem[1] = &pcurYear -> Sem2;
+	    sem[2] = &pcurYear -> Sem3; 
+	    Course *pcurCou;
+	    string tmp = "";
+	    for (int i = 0; i < 3; i++){
+	        getline (ifile, tmp, ',');
+	        getline (ifile, tmp, '\n'); 
+	        int count = stoi (tmp);
+	        sem[i]->pHeadCou = NULL;
+	        pcurCou = nullptr;
+	        for (int j = 0; j < count; j++){
+	            Course *pNew = new Course;
+	            getline(ifile, tmp,',');
+	            if (tmp == "\0")
+	                break;
+	            pNew -> IDCou = tmp;
+	            getline(ifile, tmp, ',');
+	            pNew -> nameCou = tmp;
+	            getline(ifile, tmp, ',');
+	            pNew->credits = stoi(tmp.c_str()); 
+	            getline(ifile, tmp, ',');
+	            pNew -> day1 = tmp;
+	            getline(ifile, tmp, ',');
+	            pNew -> session1 = tmp;
+	            getline(ifile, tmp, ',');
+	            pNew -> day2 = tmp;
+	            getline(ifile, tmp, ',');
+	            pNew -> session2 = tmp;
+	            getline(ifile, tmp, ',');
+	            pNew -> teacher = tmp;
+	            getline(ifile, tmp, ',');
+	            pNew -> enrolling = stoi (tmp);
+	            getline (ifile, tmp, '\n'); 
+	            pNew -> maxStu = stoi (tmp);
+	            tmp = "";
+	            if (sem[i] -> pHeadCou == nullptr)
+	                sem[i] -> pHeadCou  = pNew;
+	            if (pcurCou != nullptr)
+	                pcurCou->pNext = pNew;
+	            pcurCou = pNew;
+	        }
+	    }
+	    getline (ifile, tmp, ',');
+//	    cout << tmp << endl;
+	    Class *curClass;
+	    pcurYear->pHeadClass = NULL;
+	    Student *curStu;
+	    Score *curScore;
+	    int length = strlen(sem[0] -> pHeadCou -> IDCou.c_str());
+	    while (!ifile.eof()) {
+	        if (tmp != "\0") {
+	            if ( pcurYear -> pHeadClass != nullptr) {
+	                curClass->pNext = new Class;
+	                curClass = curClass->pNext;
+	                curClass -> pNext = nullptr;
+	            }
+	            else {
+	                curClass = new Class;
+	                pcurYear -> pHeadClass = curClass; 
+	            }
+	            curClass->className = tmp;
+	            //cout << tmp << endl;
+	            getline(ifile, tmp, '\n');
+	            curClass->numberOfStu = stoi(tmp.c_str());
+//	            cout << curClass->numberOfStu << endl;
+	            for (int i = curClass->numberOfStu; i > 0; i--) {
+	                if (i != curClass->numberOfStu) {
+	                    curStu->pNext = new Student;
+	                    curStu = curStu->pNext;
+	                }
+	                else { 
+	                    curStu = new Student;
+	                    curClass -> pHeadStu = curStu;
+	                }
+	                getline (ifile, tmp, ',');
+	                //cout << tmp << endl;
+	                curStu->No = stoi(tmp.c_str());
+	             //   cout << curStu->No << endl;
+	                getline(ifile, tmp, ',');
+	                curStu->IDStu = tmp;
+	                getline(ifile, tmp, ',');
+	                curStu->firstname = tmp;
+	                getline(ifile, tmp, ',');
+	                curStu->lastname = tmp;
+	                getline(ifile, tmp, ',');
+	                curStu->gender = tmp;
+	                getline(ifile, tmp, ',');
+	                curStu->date = tmp;         
+	                getline(ifile, tmp, ',');
+	                //cout << tmp << endl;
+	                curStu->IDSocial = stoi(tmp.c_str());
+	                getline (ifile, tmp, '\n');
+	                curStu -> course = tmp;
+	              //  cout << "Course" << curStu -> course << endl;
+	                curStu->pNext = nullptr;
+	                if (hasScore && registerEnd && registerBegin ){
+	                    int end = strlen(curStu -> course.c_str()) / length;
+	                    for (int j = 0; j < end; j++){
+	                        if (j == 0){
+	                            curScore = new Score;
+	                            curStu -> Inclass = curScore;
+	                        }
+	                        else {
+	                            curScore -> pNext = new Score;
+	                            curScore = curScore -> pNext;
+	                        }
+	                        getline(ifile, tmp, ',');
+	                        curScore -> semester = stoi (tmp);
+	                        getline (ifile, tmp, ',');
+	                        curScore -> CouID = tmp;
+	                        getline (ifile, tmp, ',');
+	                        curScore -> Mid = stof (tmp);
+	                        getline (ifile, tmp, ',');
+	                        curScore -> Final = stof (tmp);
+	                        getline (ifile, tmp, ',');
+	                        curScore -> Total = stof (tmp);
+	                        getline (ifile, tmp, ',');
+	                        curScore -> Other = stoi (tmp);
+	                        if (j != end -1)
+	                            getline (ifile, tmp, ',');
+	                        else getline (ifile, tmp, '\n');
+	                        curScore -> GPA = stof (tmp);
+	                        curScore -> pNext = nullptr;
+	                    }
+	                }
+	            }
+	        }
+	        else break;
+	        getline (ifile, tmp, ',');
+	        //cout << tmp << endl;
+	    }
+		if (pcurYear->Sem1.pHeadCou != NULL)
+			orderSem = 1;
+		if (pcurYear->Sem2.pHeadCou != NULL)
+			orderSem = 2;
+		if (pcurYear->Sem3.pHeadCou != NULL)
+			orderSem = 3;	
+//		cout << "1";		    
+	    for (int i = 1; i < 4; i++)
+	        UpdateData(pcurYear, i, true);
+	    hasScore = true;
+	}
+	else
+		pcurYear = NULL;	
 }
