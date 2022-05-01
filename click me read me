@@ -1,0 +1,15 @@
+21C1, 21C2: danh sách học sinh mới
+K18,K19,K20: danh sách học sinh cũ
+ImportCourse1: danh sách môn kì 1
+ImportCourse2: danh sách môn kì 2
+ImportCourse3: danh sách môn kì 3
+loginStaff, loginStu: username và password
+staff: thông tin của staff
+status: trạng thái của chương trình ( cùng với file chứa data của chương trình 2021.csv)
+
+001-020: bảng điểm các môn
+course 1 for data: danh sách môn kì 1 (CÓ ĐIỂM)
+course 2 for data: danh sách môn kì 2 (CÓ ĐIỂM)
+course 3 for data: danh sách môn kì 3 (CÓ ĐIỂM)
+K18 for data, K19 for data, K20 for data, K21 for data: danh sách học sinh ĐÃ ĐĂNG KÍ MÔN
+students have course: danh sách TẤT CẢ học sinh ĐÃ ĐĂNG KÍ MÔN
