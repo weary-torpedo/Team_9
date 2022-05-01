@@ -141,7 +141,7 @@ int main(){
 		string username =  loginSystem();
 		Student* pStudent = NULL;
 		if ('2' <= username[0] && username[0] <= '9')
-		pStudent = afterLog(username,pcurYear);
+			pStudent = afterLog(username,pcurYear);
 		homePage(pStudent, username);
 		int time;
 		
@@ -526,6 +526,7 @@ void importCourseScore(Year* pcurYear,int orderSem,string filename){
 		Score* pCur = pCurCou->Stu[i]->Inclass;
 		while(pCur->CouID != pCurCou->IDCou)
 			pCur = pCur->pNext;
+		cout << "1";
 		getline(fin,tmp,',');
 		pCur->Mid = stof(tmp);
 		getline(fin,tmp,',');
@@ -536,6 +537,7 @@ void importCourseScore(Year* pcurYear,int orderSem,string filename){
 		pCur->Other = stof(tmp);
 		if(pCur->Total >= 0 && pCur->Total <= 2.9)
 			pCur->GPA = 0.0;
+		cout << "2";
 		if(pCur->Total >= 3.0 && pCur->Total <= 3.9)
 			pCur->GPA = 0.5;
 		if(pCur->Total >= 4.0 && pCur->Total <= 4.7)
@@ -552,11 +554,12 @@ void importCourseScore(Year* pcurYear,int orderSem,string filename){
 			pCur->GPA = 3.5;
 		if(pCur->Total >= 8.5 && pCur->Total <= 10.0)
 			pCur->GPA = 4.0;
+		cout << i << " ";
 	}
 	fin.close();
-	gotoxy(xp, soluong + 12 );
+	gotoxy(xp, soluong + 15 );
 	cout << "You imported successfully!";
-	gotoxy(xp, soluong + 13 );
+	gotoxy(xp, soluong + 16 );
 	cout << "PRESS ENTER TO GO BACK...";
 	getch();	
 	return;
@@ -2141,11 +2144,52 @@ void viewProfile(Student *pStu){
 	getch();
 }
 
+void viewProfileStaff(string username){
+	string staff = "", tmp = "";
+	staff = staff + username[5] + username[6];
+	int no = stoi(staff);
+	fstream FILE;
+	FILE.open ("staff.txt", ios::in );
+	
+	for ( int i = 0; i < no-1; i++){
+		getline(FILE,tmp,'\n');
+		getline(FILE,tmp,'\n');
+	}
+	
+	int size = 13;
+	system("cls");
+	cout << "\n\n\n\n";
+	cout << "    " << char (218);
+	for ( int j = 1; j <= size; j++)
+		cout << char(196);
+	cout << char (191) << "\n    ";
+	for ( int j = 1; j <= 8; j++){
+		cout << char (179);
+		if ( j == 4)
+			cout << "  photo 3x4  ";
+		else 
+			cout << "             ";
+		cout << char (179) << "\n    ";	
+	}
+	cout << char (192);
+	for ( int j = 1; j <= size; j++)
+		cout << char(196);
+	cout << char (217);
+	
+	cout << "\n\n";
+	getline(FILE,tmp,'\n');
+	cout << "     Fullname: " << tmp << "\n\n";
+	getline(FILE,tmp,'\n');
+	cout << "     Email: " << tmp << "\n\n";
+	cout << "\n\n\n";
+	cout << "     PRESS ENTER TO GO BACK...";
+	getch();	
+}
+
 void homePage(Student *pStu, string username){
 	while (true){
 		system("cls");
-		if ('2' <= username[0] && username[0] <= '9')
-			printBox("Press V to view profile",xp,5,35);
+		printBox("Press V to view profile",xp,5,35);
 		printBox("Press C to change password",xp,8,35);
 		printBox("Press Enter to continue",xp,11,35);
 		printBox("Press O to log out",xp,14,35);
@@ -2153,20 +2197,23 @@ void homePage(Student *pStu, string username){
 
 		char c = getch();
 		if ( c == 'C' || c == 'c')
-		changePass(username);		
-	else if ( c == 'V' || c == 'v' ) 
-		viewProfile(pStu);
-	else if ( c == 'O' || c == 'o'){
-		logOut = true;
-		return;
+			changePass(username);		
+		else if ( c == 'V' || c == 'v' ) 
+			if (pStu)
+				viewProfile(pStu);
+			else 
+				viewProfileStaff(username);
+		else if ( c == 'O' || c == 'o'){
+			logOut = true;
+			return;
+			}
+		else if ( c == 27){
+			exitProgram = true;
+			return;
+			}
+		else if ( c == 13)
+			return;
 		}
-	else if ( c == 27){
-		exitProgram = true;
-		return;
-		}
-	else if ( c == 13)
-		return;
-	}
 }
 
 int checkTime(){
