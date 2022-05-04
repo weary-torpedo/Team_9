@@ -337,7 +337,6 @@ void viewClassScore (Class *pcurClass){
 			cout << curStu->GPA[3];
 		else
 			cout << "-";
-		getch();
         curStu = curStu -> pNext;
 	}
 	getch();
